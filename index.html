@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Bros: Wave Edition</title>
+    <title>Neon Bros: Final Fixed</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
@@ -16,42 +16,26 @@
             margin: 0 5px; position: relative; vertical-align: middle;
             box-shadow: 0 3px 0 rgba(0,0,0,0.5); font-family: Arial, sans-serif; font-weight: bold;
         }
+        .xbox-a { background: #1a1a1a; color: greenyellow; border: 2px solid #414040; font-size: 16px; }
+        .xbox-x { background: #1a1a1a; color: rgb(27, 109, 216); border: 2px solid #414040; font-size: 16px; }
+        .xbox-menu { border-radius: 5px; width: 50px; background: #1a1a1a; border: 2px solid #414040; font-size: 10px; color:white; }
 
-        /* Xbox Stili */
-        .xbox-a { background: #107c10; color: white; border: 2px solid #2dc92d; font-size: 16px; }
-        .xbox-x { background: #0050b0; color: white; border: 2px solid #4da6ff; font-size: 16px; }
-
-        /* PlayStation Stili */
-        .ps-cross { background: #1a1a1a; border: 2px solid #5c6b73; }
-        .ps-cross::after { content: '✕'; color: #6f95ff; font-size: 16px; font-weight: bold; }
-
-        .ps-square { background: #1a1a1a; border: 2px solid #5c6b73; }
-        .ps-square::after { 
-            content: ''; display: block; width: 10px; height: 10px; 
-            border: 3px solid #d856ac; /* Pembe Kare */
-            border-radius: 2px;
-        }
+        .ps-cross { background: #1a1a1a; border: 2px solid #414040; }
+        .ps-cross::after { content: '✕'; color: #4b8ac4; font-size: 16px; font-weight: bold; }
+        .ps-square { background: #1a1a1a; border: 2px solid #414040; }
+        .ps-square::after { content: ''; display: block; width: 10px; height: 10px; border: 3px solid #d856ac; border-radius: 2px; }
+        .ps-opt { border-radius: 10px; width: 50px; background: #1a1a1a; border: 2px solid #414040; font-size: 10px; color:white; }
 
         /* --- UI KATMANI --- */
-        #ui {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
-        }
-
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
         .top-bar { display: flex; justify-content: space-between; padding: 20px 50px; text-shadow: 0 0 10px currentColor; font-size: 24px; font-weight: bold; }
         #p1-score { color: #00f7ff; }
         #p2-score { color: #ffaa00; }
 
-        /* WAVE GÖSTERGESİ */
-        #wave-hud {
-            position: absolute; top: 80px; width: 100%; text-align: center;
-            color: white; text-shadow: 0 0 15px rgba(255,255,255,0.5);
-            transition: 0.3s;
-        }
+        #wave-hud { position: absolute; top: 80px; width: 100%; text-align: center; color: white; text-shadow: 0 0 15px rgba(255,255,255,0.5); transition: 0.3s; }
         .wave-title { font-size: 32px; font-weight: 900; letter-spacing: 2px; color: #ff0055; margin-bottom: 5px; }
         .wave-info { font-size: 18px; color: #aaa; }
         .wave-break { color: #00ff00; font-size: 24px; animation: pulse 1s infinite; }
-
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .bottom-bar { display: flex; justify-content: space-between; padding: 20px 50px; align-items: end; }
@@ -60,36 +44,54 @@
         .ulti-bar-bg { width: 100%; height: 12px; background: #222; border: 2px solid #444; border-radius: 6px; overflow: hidden; }
         .ulti-bar-fill { height: 100%; width: 0%; transition: width 0.1s linear; box-shadow: 0 0 15px currentColor; }
         
-        /* BAŞLANGIÇ EKRANI */
-        #start-screen {
+        /* EKRANLAR */
+        #start-screen, #pause-screen, #gameover-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(10,10,20,0.98) 0%, #000 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; z-index: 10; pointer-events: auto;
         }
-        
-        h1 { 
-            font-size: 70px; margin: 0; letter-spacing: 5px; 
-            background: linear-gradient(to right, #00f7ff, #ffffff, #ffaa00);
-            -webkit-background-clip: text; color: transparent;
-            text-shadow: 0 0 30px rgba(255,255,255,0.3);
-        }
+        #start-screen { background: radial-gradient(circle, rgba(10,10,20,0.98) 0%, #000 100%); }
+        #pause-screen { background: rgba(0, 0, 0, 0.85); display: none; z-index: 20; pointer-events: none; }
+        #gameover-screen { background: rgba(0, 0, 0, 0.95); display: none; z-index: 30; }
+
+        h1 { font-size: 70px; margin: 0; letter-spacing: 5px; background: linear-gradient(to right, #00f7ff, #ffffff, #ffaa00); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 30px rgba(255,255,255,0.3); }
 
         .status-area { margin-top: 50px; display: flex; gap: 40px; }
         .player-card {
             background: rgba(255,255,255,0.05); padding: 20px 40px; border-radius: 10px; border: 1px solid #333;
             text-align: center; width: 200px; transition: 0.3s;
         }
-        .player-card.active { border-color: #00f7ff; background: rgba(0, 247, 255, 0.05); box-shadow: 0 0 20px rgba(0, 247, 255, 0.1); }
-        .player-card.active-p2 { border-color: #ffaa00; background: rgba(255, 170, 0, 0.05); box-shadow: 0 0 20px rgba(255, 170, 0, 0.1); }
-        
+        .player-card.connected { border-color: #555; background: rgba(255,255,255,0.1); }
+        .player-card.ready { border-color: #00ff00; background: rgba(0, 255, 0, 0.1); box-shadow: 0 0 20px rgba(0, 255, 0, 0.2); transform: scale(1.05); }
+
         .con-name { font-size: 12px; color: #888; margin-top: 5px; }
-        .start-prompt { margin-top: 15px; font-size: 14px; opacity: 0; transition: 0.3s; }
-        .start-prompt.show { opacity: 1; }
+        .start-prompt { margin-top: 15px; font-size: 14px; opacity: 0.5; }
+        .ready-text { font-size: 18px; font-weight: bold; color: #00ff00; margin-top: 10px; display: none; }
+        .player-card.ready .ready-text { display: block; }
+        .player-card.ready .start-prompt { display: none; }
+
+        .score-detail { font-size: 30px; margin-top: 20px; color: #fff; font-weight: bold; }
+        .score-sub { font-size: 16px; color: #aaa; margin-top: 5px; }
 
     </style>
 </head>
 <body>
+
+    <div id="pause-screen">
+        <h1 style="font-size: 50px;">DURAKLATILDI</h1>
+        <div style="margin-top: 20px; font-size: 18px; color: #aaa;">Devam: <b>MENÜ</b></div>
+    </div>
+
+    <div id="gameover-screen">
+        <h1 style="font-size: 60px;">OYUN BİTTİ</h1>
+        
+        <div id="total-score-display" class="score-detail">TOPLAM PUAN: 0</div>
+        <div id="final-wave-display" class="score-sub">ULAŞILAN DALGA: 1</div>
+
+        <div style="margin-top: 50px; font-size: 14px; color: #888; display:flex; align-items:center; gap:10px;">
+            MENÜYE DÖNMEK İÇİN <span class="btn xbox-menu">MENU</span> / <span class="btn ps-opt">OPT</span> BASIN
+        </div>
+    </div>
 
     <div id="ui">
         <div class="top-bar">
@@ -104,16 +106,13 @@
         <div class="bottom-bar">
             <div class="ulti-container">
                 <div class="ulti-label">
-                    <span id="p1-ulti-icon" class="btn"></span> ULTİ
-                    <span id="p1-ulti-text" style="color:#00f7ff; font-size:10px; margin-left:auto;">HAZIR!</span>
+                    <span id="p1-ulti-icon" class="btn"></span> ULTİ <span id="p1-ulti-text" style="color:#00f7ff; font-size:10px; margin-left:auto;">HAZIR!</span>
                 </div>
                 <div class="ulti-bar-bg"><div id="p1-ulti-bar" class="ulti-bar-fill" style="background:#00f7ff; width:100%;"></div></div>
             </div>
-
             <div class="ulti-container" style="text-align:right;">
                 <div class="ulti-label" style="justify-content: flex-end;">
-                    <span id="p2-ulti-text" style="color:#ffaa00; font-size:10px; margin-right:auto;">HAZIR!</span>
-                    ULTİ <span id="p2-ulti-icon" class="btn"></span>
+                    <span id="p2-ulti-text" style="color:#ffaa00; font-size:10px; margin-right:auto;">HAZIR!</span> ULTİ <span id="p2-ulti-icon" class="btn"></span>
                 </div>
                 <div class="ulti-bar-bg"><div id="p2-ulti-bar" class="ulti-bar-fill" style="background:#ffaa00; width:100%;"></div></div>
             </div>
@@ -122,25 +121,24 @@
 
     <div id="start-screen">
         <h1>NEON BROS</h1>
-        <div style="font-size: 14px; letter-spacing: 5px; color: #666; margin-bottom: 40px;">WAVE EDITION</div>
+        <div style="font-size: 14px; letter-spacing: 5px; color: #666; margin-bottom: 40px;">ULTIMATE EDITION</div>
 
         <div class="status-area">
             <div id="p1-card" class="player-card">
                 <div style="font-size:20px; font-weight:bold; color:#00f7ff;">OYUNCU 1</div>
-                <div id="p1-con-name" class="con-name">KOL BEKLENİYOR...</div>
-                <div id="p1-prompt" class="start-prompt">
-                    <span id="p1-start-icon" class="btn"></span> BAS
-                </div>
+                <div id="p1-con-name" class="con-name">KOL YOK</div>
+                <div id="p1-prompt" class="start-prompt"><span id="p1-start-icon" class="btn"></span> BAS</div>
+                <div class="ready-text">HAZIR</div>
             </div>
 
             <div id="p2-card" class="player-card">
                 <div style="font-size:20px; font-weight:bold; color:#ffaa00;">OYUNCU 2</div>
-                <div id="p2-con-name" class="con-name">KOL BEKLENİYOR...</div>
-                <div id="p2-prompt" class="start-prompt">
-                    <span id="p2-start-icon" class="btn"></span> BAS
-                </div>
+                <div id="p2-con-name" class="con-name">KOL YOK</div>
+                <div id="p2-prompt" class="start-prompt"><span id="p2-start-icon" class="btn"></span> BAS</div>
+                <div class="ready-text">HAZIR</div>
             </div>
         </div>
+        <div style="margin-top:30px; font-size:12px; color:#555;">(Her İki Oyuncu Hazır Olduğunda Başlar)</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -152,11 +150,10 @@
     canvas.height = window.innerHeight;
 
     // --- HTML ELEMENTLERİ ---
-    const uiElements = {
+    const ui = {
         p1: {
             card: document.getElementById('p1-card'),
             name: document.getElementById('p1-con-name'),
-            prompt: document.getElementById('p1-prompt'),
             startIcon: document.getElementById('p1-start-icon'),
             ultiIcon: document.getElementById('p1-ulti-icon'),
             ultiBar: document.getElementById('p1-ulti-bar'),
@@ -166,7 +163,6 @@
         p2: {
             card: document.getElementById('p2-card'),
             name: document.getElementById('p2-con-name'),
-            prompt: document.getElementById('p2-prompt'),
             startIcon: document.getElementById('p2-start-icon'),
             ultiIcon: document.getElementById('p2-ulti-icon'),
             ultiBar: document.getElementById('p2-ulti-bar'),
@@ -175,38 +171,48 @@
         },
         waveTitle: document.getElementById('wave-title'),
         waveInfo: document.getElementById('wave-info'),
-        startScreen: document.getElementById('start-screen')
+        startScreen: document.getElementById('start-screen'),
+        pauseScreen: document.getElementById('pause-screen'),
+        gameoverScreen: document.getElementById('gameover-screen'),
+        totalScoreDisplay: document.getElementById('total-score-display'),
+        finalWaveDisplay: document.getElementById('final-wave-display')
     };
 
     // --- AYARLAR ---
     const P1_COLOR = '#00f7ff';
     const P2_COLOR = '#ffaa00';
     let gameActive = false;
+    let isGameOver = false;
+    let isPaused = false;
     let shakeTime = 0;
+    
+    let lastPauseToggle = 0;
+    let p1Ready = false;
+    let p2Ready = false;
+    let p1BtnLast = false;
+    let p2BtnLast = false;
 
-    // --- WAVE SİSTEMİ DEĞİŞKENLERİ ---
+    // Wave Değişkenleri
     let currentWave = 1;
     let waveEnemiesTotal = 0;
+    let waveEnemiesKilled = 0;
     let waveEnemiesSpawned = 0;
     let isWaveBreak = false;
     let waveBreakTimer = 0;
-    let waveStartTime = 0;
+    let spawnTimer = 0;
+    let spawnRate = 60;
 
-    // --- KOL TÜRÜ ALGILAMA ---
     function getControllerType(gamepad) {
         if (!gamepad) return 'xbox';
         const id = gamepad.id.toLowerCase();
-        if (id.includes('sony') || id.includes('dual') || id.includes('054c') || id.includes('playstation')) {
-            return 'ps';
-        }
+        if (id.includes('sony') || id.includes('dual') || id.includes('054c') || id.includes('playstation')) return 'ps';
         return 'xbox';
     }
 
     function updateIcons(playerId, type) {
-        const p = playerId === 0 ? uiElements.p1 : uiElements.p2;
+        const p = playerId === 0 ? ui.p1 : ui.p2;
         p.startIcon.className = 'btn'; p.startIcon.innerText = ''; 
         p.ultiIcon.className = 'btn'; p.ultiIcon.innerText = ''; 
-
         if (type === 'ps') {
             p.startIcon.classList.add('ps-cross');
             p.ultiIcon.classList.add('ps-square');
@@ -219,249 +225,228 @@
     // --- OYUN SINIFLARI ---
     class Shockwave {
         constructor(x, y, color) {
-            this.x = x; this.y = y; this.color = color;
-            this.radius = 10; this.maxRadius = 400; this.speed = 15;
-            this.active = true; this.lineWidth = 10; this.alpha = 1;
+            this.x=x; this.y=y; this.color=color; this.r=10; this.speed=15; this.active=true; this.lw=10; this.alpha=1;
         }
         update() {
-            this.radius += this.speed; this.lineWidth *= 0.95; this.alpha -= 0.03;
-            if (this.alpha <= 0) this.active = false;
-            enemies.forEach((e, index) => {
-                if (Math.abs(Math.hypot(e.x - this.x, e.y - this.y) - this.radius) < 30) {
-                    createExplosion(e.x, e.y, e.color); enemies.splice(index, 1);
+            this.r+=this.speed; this.lw*=0.95; this.alpha-=0.03; if(this.alpha<=0)this.active=false;
+            for(let i=enemies.length-1; i>=0; i--){
+                let e = enemies[i];
+                if(Math.abs(Math.hypot(e.x-this.x, e.y-this.y)-this.r)<30){
+                    createExplosion(e.x,e.y,e.c); enemies.splice(i,1); waveEnemiesKilled++;
                 }
-            });
+            }
         }
         draw() {
-            ctx.save(); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.strokeStyle = this.color; ctx.lineWidth = this.lineWidth; ctx.globalAlpha = this.alpha;
-            ctx.shadowBlur = 20; ctx.shadowColor = this.color; ctx.stroke(); ctx.restore();
+            ctx.save(); ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+            ctx.strokeStyle=this.color; ctx.lineWidth=this.lw; ctx.globalAlpha=this.alpha;
+            ctx.shadowBlur=20; ctx.shadowColor=this.color; ctx.stroke(); ctx.restore();
         }
     }
 
     class Player {
         constructor(id, color) {
-            this.id = id; this.color = color;
-            this.x = canvas.width/2 + (id===0?-100:100); this.y = canvas.height/2;
-            this.radius = 20; this.speed = 6; this.lives = 2; 
-            this.isDead = false; this.invulnerableTime = 0; this.reviveProgress = 0;
-            this.score = 0; this.lastShot = 0; this.fireRate = 100; this.aimAngle = 0;
-            this.lastUlti = 0; this.ultiCooldown = 20000;
+            this.id=id; this.color=color; this.reset();
         }
-
+        reset() {
+            this.x=canvas.width/2+(this.id===0?-100:100); this.y=canvas.height/2;
+            this.r=20; this.speed=6; this.lives=2; this.isDead=false; this.invulnerableTime=0;
+            this.reviveProgress=0; this.score=0; this.lastShot=0; this.lastUlti=0;
+        }
         update(gamepad) {
-            if (this.isDead) return;
-            if (this.invulnerableTime > 0) this.invulnerableTime--;
-
-            this.x += (Math.abs(gamepad.axes[0])>0.1 ? gamepad.axes[0] : 0) * this.speed;
-            this.y += (Math.abs(gamepad.axes[1])>0.1 ? gamepad.axes[1] : 0) * this.speed;
+            if(this.isDead) return;
+            if(this.invulnerableTime>0) this.invulnerableTime--;
+            this.x += (Math.abs(gamepad.axes[0])>0.1?gamepad.axes[0]:0)*this.speed;
+            this.y += (Math.abs(gamepad.axes[1])>0.1?gamepad.axes[1]:0)*this.speed;
             this.constrain();
-
-            let ax = Math.abs(gamepad.axes[2])>0.1 ? gamepad.axes[2] : 0;
-            let ay = Math.abs(gamepad.axes[3])>0.1 ? gamepad.axes[3] : 0;
-            if(ax!==0 || ay!==0) {
-                this.aimAngle = Math.atan2(ay, ax);
-                if(Date.now() - this.lastShot > this.fireRate) {
-                    bullets.push(new Bullet(this.x, this.y, this.aimAngle, this.color));
-                    this.lastShot = Date.now();
-                    this.x -= Math.cos(this.aimAngle)*2; this.y -= Math.sin(this.aimAngle)*2;
+            
+            let ax=Math.abs(gamepad.axes[2])>0.1?gamepad.axes[2]:0, ay=Math.abs(gamepad.axes[3])>0.1?gamepad.axes[3]:0;
+            if(ax!==0||ay!==0){
+                this.aimAngle=Math.atan2(ay,ax);
+                if(Date.now()-this.lastShot>100){
+                    bullets.push(new Bullet(this.x,this.y,this.aimAngle,this.color));
+                    this.lastShot=Date.now(); this.x-=Math.cos(this.aimAngle)*2; this.y-=Math.sin(this.aimAngle)*2;
                 }
             }
-
             if(gamepad.buttons[2].pressed) this.triggerUlti();
             this.updateUI();
         }
-
         triggerUlti() {
-            if(Date.now() - this.lastUlti > this.ultiCooldown) {
-                this.lastUlti = Date.now();
-                shockwaves.push(new Shockwave(this.x, this.y, this.color));
-                shakeTime = 30;
+            if(Date.now()-this.lastUlti>20000) {
+                this.lastUlti=Date.now(); shockwaves.push(new Shockwave(this.x,this.y,this.color)); shakeTime=30;
             }
         }
-
         updateUI() {
-            let timePassed = Date.now() - this.lastUlti;
-            let percent = Math.min((timePassed/this.ultiCooldown)*100, 100);
-            if(this.lastUlti === 0) percent = 100;
-
-            const pUI = this.id===0 ? uiElements.p1 : uiElements.p2;
-            pUI.ultiBar.style.width = percent + "%";
-            if(percent >= 100) {
-                pUI.ultiBar.style.backgroundColor = this.color;
-                pUI.ultiBar.style.boxShadow = `0 0 10px ${this.color}`;
-                pUI.ultiText.innerText = "HAZIR!"; pUI.ultiText.style.opacity = 1;
+            let passed=Date.now()-this.lastUlti, pct=Math.min((passed/20000)*100,100);
+            if(this.lastUlti===0) pct=100;
+            const u = this.id===0?ui.p1:ui.p2;
+            u.ultiBar.style.width=pct+"%";
+            if(pct>=100){
+                u.ultiBar.style.backgroundColor=this.color; u.ultiBar.style.boxShadow=`0 0 10px ${this.color}`;
+                u.ultiText.innerText="HAZIR!"; u.ultiText.style.opacity=1;
             } else {
-                pUI.ultiBar.style.backgroundColor = "#555"; pUI.ultiBar.style.boxShadow = "none";
-                pUI.ultiText.innerText = Math.ceil((this.ultiCooldown-timePassed)/1000) + "sn";
-                pUI.ultiText.style.opacity = 0.5;
+                u.ultiBar.style.backgroundColor="#555"; u.ultiBar.style.boxShadow="none";
+                u.ultiText.innerText=Math.ceil((20000-passed)/1000)+"sn"; u.ultiText.style.opacity=0.5;
             }
         }
-
         constrain() {
-            if(this.x<this.radius) this.x=this.radius; if(this.x>canvas.width-this.radius) this.x=canvas.width-this.radius;
-            if(this.y<this.radius) this.y=this.radius; if(this.y>canvas.height-this.radius) this.y=canvas.height-this.radius;
+            if(this.x<this.r)this.x=this.r; if(this.x>canvas.width-this.r)this.x=canvas.width-this.r;
+            if(this.y<this.r)this.y=this.r; if(this.y>canvas.height-this.r)this.y=canvas.height-this.r;
         }
-
         takeDamage() {
-            if(this.invulnerableTime>0 || this.isDead) return;
+            if(this.invulnerableTime>0||this.isDead) return;
             this.lives--; shakeTime=10;
             if(this.lives<=0) { this.isDead=true; createExplosion(this.x,this.y,this.color); }
             else { this.invulnerableTime=120; createExplosion(this.x,this.y,"#fff"); }
         }
-
         draw() {
-            if(this.isDead) {
+            if(this.isDead){
                 ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle=this.color; ctx.lineWidth=2;
-                ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.stroke();
-                ctx.font="12px Orbitron"; ctx.fillStyle="white"; ctx.textAlign="center"; 
-                ctx.fillText("KURTAR",this.x,this.y-35);
-                if(this.reviveProgress>0) { ctx.fillStyle="#00ff00"; ctx.fillRect(this.x-20,this.y+35,(this.reviveProgress/100)*40,5); }
+                ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.stroke();
+                ctx.font="12px Orbitron"; ctx.fillStyle="white"; ctx.textAlign="center"; ctx.fillText("KURTAR",this.x,this.y-35);
+                if(this.reviveProgress>0){ctx.fillStyle="#00ff00";ctx.fillRect(this.x-20,this.y+35,(this.reviveProgress/100)*40,5);}
                 ctx.restore(); return;
             }
-            if(this.invulnerableTime>0 && Math.floor(Date.now()/50)%2===0) return;
+            if(this.invulnerableTime>0 && Math.floor(Date.now()/50)%2===0)return;
             ctx.save(); ctx.shadowBlur=15; ctx.shadowColor=this.color; ctx.fillStyle=this.color;
-            ctx.beginPath(); ctx.arc(this.x,this.y,this.radius,0,Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill();
             ctx.shadowBlur=0; ctx.strokeStyle="rgba(255,255,255,0.5)"; ctx.lineWidth=2;
-            ctx.beginPath(); ctx.moveTo(this.x,this.y); 
-            ctx.lineTo(this.x+Math.cos(this.aimAngle)*40, this.y+Math.sin(this.aimAngle)*40); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(this.x,this.y); ctx.lineTo(this.x+Math.cos(this.aimAngle)*40,this.y+Math.sin(this.aimAngle)*40); ctx.stroke();
             ctx.font="14px Arial"; ctx.fillStyle="#ff3333"; ctx.textAlign="center";
-            let hearts=""; for(let i=0;i<this.lives;i++) hearts+="❤"; ctx.fillText(hearts,this.x,this.y-30);
-            ctx.fillStyle="#000"; ctx.font="bold 10px Orbitron"; ctx.textBaseline="middle"; 
-            ctx.fillText(this.id===0?"P1":"P2",this.x,this.y); ctx.restore();
+            let h=""; for(let i=0;i<this.lives;i++)h+="❤"; ctx.fillText(h,this.x,this.y-30);
+            ctx.fillStyle="#000"; ctx.font="bold 10px Orbitron"; ctx.textBaseline="middle"; ctx.fillText(this.id===0?"P1":"P2",this.x,this.y); ctx.restore();
         }
     }
 
     class Bullet {
-        constructor(x, y, a, c) { this.x=x+Math.cos(a)*20; this.y=y+Math.sin(a)*20; this.vx=Math.cos(a)*15; this.vy=Math.sin(a)*15; this.c=c; }
-        update() { this.x+=this.vx; this.y+=this.vy; }
-        draw() { ctx.save(); ctx.shadowBlur=10; ctx.shadowColor=this.c; ctx.fillStyle="white"; ctx.beginPath(); ctx.arc(this.x,this.y,4,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+        constructor(x,y,a,c){this.x=x+Math.cos(a)*20;this.y=y+Math.sin(a)*20;this.vx=Math.cos(a)*15;this.vy=Math.sin(a)*15;this.c=c;}
+        update(){this.x+=this.vx;this.y+=this.vy;}
+        draw(){ctx.save();ctx.shadowBlur=10;ctx.shadowColor=this.c;ctx.fillStyle="white";ctx.beginPath();ctx.arc(this.x,this.y,4,0,Math.PI*2);ctx.fill();ctx.restore();}
     }
     class Enemy {
-        constructor(wave) { 
-            // Wave arttıkça düşman daha hızlı
-            let speedBonus = (wave - 1) * 0.15;
+        constructor(wave){
+            let sb=(wave-1)*0.15;
             if(Math.random()<0.5){this.x=Math.random()<0.5?-30:canvas.width+30;this.y=Math.random()*canvas.height;}
             else{this.x=Math.random()*canvas.width;this.y=Math.random()<0.5?-30:canvas.height+30;}
-            this.r=15; 
-            this.s=(Math.random()*2+1) + speedBonus; // Hız artışı
-            this.c='#ff0044';
+            this.r=15; this.s=(Math.random()*2+1)+sb; this.c='#ff0044';
         }
-        update() {
+        update(){
             let t=null, d1=players[0].isDead?Infinity:Math.hypot(players[0].x-this.x,players[0].y-this.y), d2=players[1].isDead?Infinity:Math.hypot(players[1].x-this.x,players[1].y-this.y);
-            if(d1===Infinity && d2===Infinity) return;
+            if(d1===Infinity&&d2===Infinity)return;
             t=d1<d2?players[0]:players[1];
             let a=Math.atan2(t.y-this.y,t.x-this.x); this.x+=Math.cos(a)*this.s; this.y+=Math.sin(a)*this.s;
         }
-        draw() { ctx.save(); ctx.shadowBlur=10; ctx.shadowColor=this.c; ctx.fillStyle=this.c; ctx.fillRect(this.x-this.r,this.y-this.r,this.r*2,this.r*2); ctx.restore(); }
+        draw(){ctx.save();ctx.shadowBlur=10;ctx.shadowColor=this.c;ctx.fillStyle=this.c;ctx.fillRect(this.x-this.r,this.y-this.r,this.r*2,this.r*2);ctx.restore();}
     }
-    class Particle {
-        constructor(x,y,c) { this.x=x;this.y=y;this.vx=(Math.random()-0.5)*10;this.vy=(Math.random()-0.5)*10;this.life=1;this.c=c; }
-        update() { this.x+=this.vx; this.y+=this.vy; this.life-=0.04; }
-        draw() { ctx.save(); ctx.globalAlpha=this.life; ctx.fillStyle=this.c; ctx.beginPath(); ctx.arc(this.x,this.y,3,0,Math.PI*2); ctx.fill(); ctx.restore(); }
-    }
+    class Particle{constructor(x,y,c){this.x=x;this.y=y;this.vx=(Math.random()-0.5)*10;this.vy=(Math.random()-0.5)*10;this.life=1;this.c=c;}update(){this.x+=this.vx;this.y+=this.vy;this.life-=0.04;}draw(){ctx.save();ctx.globalAlpha=this.life;ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,3,0,Math.PI*2);ctx.fill();ctx.restore();}}
 
-    const players = [new Player(0, P1_COLOR), new Player(1, P2_COLOR)];
+    const players=[new Player(0,P1_COLOR),new Player(1,P2_COLOR)];
     let bullets=[], enemies=[], particles=[], shockwaves=[];
-    let spawnTimer=0, spawnRate=60;
 
-    function createExplosion(x,y,c) { for(let i=0;i<15;i++) particles.push(new Particle(x,y,c)); }
+    function createExplosion(x,y,c){for(let i=0;i<15;i++)particles.push(new Particle(x,y,c));}
 
-    // --- WAVE YÖNETİMİ ---
     function startWave(waveNum) {
-        currentWave = waveNum;
-        isWaveBreak = false;
-        // Zorluk Formülü: 5 + (Wave * 3)
-        waveEnemiesTotal = 5 + (waveNum * 3);
-        waveEnemiesSpawned = 0;
-        
-        // Spawn hızı artışı (En hızlı 10 frame'e kadar düşer)
+        currentWave = waveNum; isWaveBreak = false;
+        waveEnemiesTotal = 5 + (waveNum * 3); 
+        waveEnemiesKilled = 0; waveEnemiesSpawned = 0;
         spawnRate = Math.max(10, 60 - (waveNum * 2));
-        
-        uiElements.waveTitle.innerText = "DALGA " + waveNum;
-        uiElements.waveInfo.className = "wave-info";
-        uiElements.waveInfo.innerText = waveEnemiesTotal + " Düşman Geliyor!";
+        ui.waveTitle.innerText = "DALGA " + waveNum;
+        ui.waveInfo.className = "wave-info";
+        ui.waveInfo.innerText = "Kalan: " + waveEnemiesTotal;
     }
 
     function startWaveBreak() {
-        isWaveBreak = true;
-        // 20 Saniye Mola (Şimdilik test için 20sn. Oyun içinde 20sn uzun gelebilir ama istediğin bu)
-        waveBreakTimer = 20; 
-        uiElements.waveTitle.innerText = "DALGA TAMAMLANDI!";
-        uiElements.waveInfo.className = "wave-break";
+        isWaveBreak=true; waveBreakTimer=20; 
+        ui.waveTitle.innerText="DALGA TAMAMLANDI!"; ui.waveInfo.className="wave-break";
     }
 
-    // --- OYUN DÖNGÜSÜ ---
+    function togglePause() {
+        isPaused=!isPaused; ui.pauseScreen.style.display=isPaused?'flex':'none';
+    }
+
+    function resetToMenu() {
+        gameActive = false; isGameOver = false; isPaused = false;
+        p1Ready = false; p2Ready = false;
+        ui.p1.card.classList.remove('ready'); ui.p2.card.classList.remove('ready');
+        ui.gameoverScreen.style.display = 'none';
+        ui.startScreen.style.display = 'flex';
+        bullets=[]; enemies=[]; particles=[]; shockwaves=[];
+        players[0].reset(); players[1].reset();
+    }
+
     function loop() {
         requestAnimationFrame(loop);
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
 
+        // --- MENÜ MANTIĞI ---
         if (!gameActive) {
-            // MENÜ MANTIĞI
-            if (pads[0]) {
-                uiElements.p1.card.classList.add('active');
-                uiElements.p1.name.innerText = getControllerType(pads[0]) === 'ps' ? "PLAYSTATION KOLU" : "XBOX KOLU";
-                uiElements.p1.prompt.classList.add('show');
+            if(pads[0]){
+                ui.p1.card.classList.add('connected'); ui.p1.name.innerText=getControllerType(pads[0])==='ps'?"PS KOLU":"XBOX KOLU";
                 updateIcons(0, getControllerType(pads[0]));
-            }
-            if (pads[1]) {
-                uiElements.p2.card.classList.add('active-p2');
-                uiElements.p2.name.innerText = getControllerType(pads[1]) === 'ps' ? "PLAYSTATION KOLU" : "XBOX KOLU";
-                uiElements.p2.prompt.classList.add('show');
+                if(pads[0].buttons[0].pressed && !p1BtnLast) { p1Ready=!p1Ready; ui.p1.card.classList.toggle('ready'); }
+                p1BtnLast = pads[0].buttons[0].pressed;
+            } else { ui.p1.card.classList.remove('connected','ready'); p1Ready=false; ui.p1.name.innerText="KOL YOK"; }
+
+            if(pads[1]){
+                ui.p2.card.classList.add('connected'); ui.p2.name.innerText=getControllerType(pads[1])==='ps'?"PS KOLU":"XBOX KOLU";
                 updateIcons(1, getControllerType(pads[1]));
-            }
-            if (pads[0] && pads[1] && (pads[0].buttons[0].pressed || pads[1].buttons[0].pressed)) {
-                gameActive = true;
-                uiElements.startScreen.style.display = 'none';
-                updateIcons(0, getControllerType(pads[0]));
-                updateIcons(1, getControllerType(pads[1]));
-                startWave(1); // OYUNU DALGA 1 İLE BAŞLAT
+                if(pads[1].buttons[0].pressed && !p2BtnLast) { p2Ready=!p2Ready; ui.p2.card.classList.toggle('ready'); }
+                p2BtnLast = pads[1].buttons[0].pressed;
+            } else { ui.p2.card.classList.remove('connected','ready'); p2Ready=false; ui.p2.name.innerText="KOL YOK"; }
+
+            let p1OK = !pads[0] || p1Ready; 
+            let p2OK = !pads[1] || p2Ready;
+            let atLeastOne = pads[0] || pads[1];
+
+            if(atLeastOne && p1OK && p2OK) {
+                gameActive=true; ui.startScreen.style.display='none'; startWave(1);
             }
             return;
         }
 
-        // OYUN İÇİ
+        // --- PAUSE / RESTART CHECK ---
+        const startBtn = (pads[0] && pads[0].buttons[9].pressed) || (pads[1] && pads[1].buttons[9].pressed);
+        if(startBtn && Date.now()-lastPauseToggle>300) {
+            if(isGameOver) resetToMenu(); 
+            else togglePause(); 
+            lastPauseToggle=Date.now();
+        }
+
+        if(isPaused || isGameOver) {
+            if(isGameOver && ui.gameoverScreen.style.display==='none') {
+                 ui.gameoverScreen.style.display='flex';
+                 ui.finalWaveDisplay.innerText = "ULAŞILAN DALGA: " + currentWave;
+                 ui.totalScoreDisplay.innerText = "TOPLAM PUAN: " + (players[0].score + players[1].score);
+            }
+            return; 
+        }
+
+        // --- OYUN ÇİZİMİ ---
         ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width, canvas.height);
         if(shakeTime>0) { ctx.save(); ctx.translate((Math.random()-0.5)*15,(Math.random()-0.5)*15); shakeTime--; }
-        
         ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.beginPath();
         for(let x=0;x<canvas.width;x+=50){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
         for(let y=0;y<canvas.height;y+=50){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);} ctx.stroke();
 
         if(pads[0]) players[0].update(pads[0]); if(pads[1]) players[1].update(pads[1]);
 
-        // WAVE LOGIC
-        if (!isWaveBreak) {
-            // Düşman Spawnlama
+        if(!isWaveBreak) {
             if (waveEnemiesSpawned < waveEnemiesTotal) {
-                spawnTimer++; 
+                spawnTimer++;
                 if(spawnTimer > spawnRate) {
-                    enemies.push(new Enemy(currentWave)); 
-                    spawnTimer = 0; 
-                    waveEnemiesSpawned++;
-                    uiElements.waveInfo.innerText = "Kalan: " + (waveEnemiesTotal - enemies.length);
+                    enemies.push(new Enemy(currentWave)); spawnTimer=0; waveEnemiesSpawned++;
                 }
             } else if (enemies.length === 0) {
-                // Tüm düşmanlar bitti ve öldü
                 startWaveBreak();
-            } else {
-                uiElements.waveInfo.innerText = "Kalan: " + enemies.length;
             }
+            ui.waveInfo.innerText = "Kalan: " + (waveEnemiesTotal - waveEnemiesKilled);
         } else {
-            // Mola Süresi
-            // Saniye sayacı (Frame tabanlı basit sayaç yerine Date kullanmak daha iyidir ama basit tutalım)
-            // 60 frame = 1 saniye yaklaşık
-            if (spawnTimer % 60 === 0) {
-                waveBreakTimer--;
-                uiElements.waveInfo.innerText = "SONRAKİ DALGA: " + waveBreakTimer + "sn";
-                if (waveBreakTimer <= 0) {
-                    startWave(currentWave + 1);
-                }
+            if(spawnTimer%60===0) {
+                waveBreakTimer--; ui.waveInfo.innerText="SONRAKİ DALGA: "+waveBreakTimer+"sn";
+                if(waveBreakTimer<=0) startWave(currentWave+1);
             }
             spawnTimer++;
         }
 
-        // Revive Logic
         [0,1].forEach(i=>{
             let me=players[i], other=players[i===0?1:0];
             if(me.isDead && !other.isDead && Math.hypot(me.x-other.x,me.y-other.y)<60) {
@@ -470,7 +455,7 @@
             } else me.reviveProgress=0;
         });
 
-        shockwaves.forEach((s,i)=>{ if(s.active){s.update();s.draw();}else shockwaves.splice(i,1); });
+        shockwaves.forEach((s,i)=>{if(s.active){s.update();s.draw();}else shockwaves.splice(i,1);});
         players[0].draw(); players[1].draw();
 
         for(let i=bullets.length-1;i>=0;i--){
@@ -479,31 +464,33 @@
             for(let j=enemies.length-1;j>=0;j--){
                 let e=enemies[j];
                 if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+4){
-                    createExplosion(e.x,e.y,e.c); enemies.splice(j,1); bullets.splice(i,1);
+                    createExplosion(e.x,e.y,e.c); enemies.splice(j,1); bullets.splice(i,1); waveEnemiesKilled++;
                     if(b.c===P1_COLOR)players[0].score+=10;else players[1].score+=10; break;
                 }
             }
         }
+        
+        // --- DÜZELTİLEN KISIM: Çarpışma Mantığı ---
         for(let i=enemies.length-1;i>=0;i--){
             let e=enemies[i]; e.update(); e.draw();
-            players.forEach(p=>{
-                if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-e.x,p.y-e.y)<p.radius+e.r){
-                    p.takeDamage(); createExplosion(e.x,e.y,e.c); enemies.splice(i,1);
+            for(let j=0; j<players.length; j++){
+                let p = players[j];
+                // 'p.r' kullanıyoruz, 'p.radius' DEĞİL
+                if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-e.x,p.y-e.y)<p.r+e.r){
+                    p.takeDamage(); 
+                    createExplosion(e.x,e.y,e.c); 
+                    enemies.splice(i,1); 
+                    waveEnemiesKilled++;
+                    break;
                 }
-            });
+            }
         }
-        particles.forEach((p,i)=>{p.update();p.draw();if(p.life<=0)particles.splice(i,1);});
-
-        if(shakeTime>0) ctx.restore();
-        uiElements.p1.score.innerText = `P1: ${players[0].score}`;
-        uiElements.p2.score.innerText = `P2: ${players[1].score}`;
         
-        if(players[0].isDead && players[1].isDead) {
-            ctx.fillStyle="rgba(0,0,0,0.8)"; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle="white"; ctx.font="bold 60px Orbitron"; ctx.textAlign="center"; ctx.fillText("OYUN BİTTİ",canvas.width/2,canvas.height/2);
-            ctx.font="20px Orbitron"; ctx.fillText("DALGA: " + currentWave, canvas.width/2, canvas.height/2+40);
-            ctx.font="16px Orbitron"; ctx.fillText("Yeniden başlamak için F5",canvas.width/2,canvas.height/2+80);
-        }
+        particles.forEach((p,i)=>{p.update();p.draw();if(p.life<=0)particles.splice(i,1);});
+        if(shakeTime>0) ctx.restore();
+        ui.p1.score.innerText = `P1: ${players[0].score}`; ui.p2.score.innerText = `P2: ${players[1].score}`;
+        
+        if(players[0].isDead && players[1].isDead) isGameOver=true;
     }
     loop();
     window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
