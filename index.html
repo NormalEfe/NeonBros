@@ -2,14 +2,13 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Bros: Geometric Warfare (Controller Edition)</title>
+    <title>Neon Bros</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         body { margin: 0; overflow: hidden; background: #050505; font-family: 'Orbitron', 'Microsoft YaHei', sans-serif; user-select: none; }
         canvas { display: block; }
         
-        /* OYUN İÇİ BUTONLAR */
         .btn {
             display: inline-flex; justify-content: center; align-items: center;
             width: 28px; height: 28px; border-radius: 50%; 
@@ -24,7 +23,6 @@
         .ps-square { background: #1a1a1a; border: 2px solid #414040; }
         .ps-square::after { content: ''; display: block; width: 10px; height: 10px; border: 3px solid #d856ac; border-radius: 2px; }
         
-        /* LB / RB İkonları */
         .bumper-icon {
             display: inline-block; padding: 2px 8px; background: #333; 
             border: 1px solid #666; border-radius: 4px; color: #fff; 
@@ -100,10 +98,7 @@
         .txt-waiting { animation: pulse 1s infinite alternate; }
         @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
 
-        /* DİL SEÇİM BUTONLARI */
-        .lang-bar {
-            margin-top: 50px; display: flex; gap: 10px;
-        }
+        .lang-bar { margin-top: 50px; display: flex; gap: 10px; }
         .lang-btn {
             background: #222; color: #888; border: 1px solid #444; padding: 10px 20px;
             cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 14px;
@@ -114,7 +109,6 @@
             box-shadow: 0 0 15px #00f7ff; font-weight: bold; transform: scale(1.1);
         }
 
-        /* YENİ MENÜ BUTONLARI (PAUSE & GAMEOVER) */
         .menu-options { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; }
         .menu-btn {
             background: transparent; border: 2px solid #555; color: #aaa;
@@ -129,6 +123,10 @@
     </style>
 </head>
 <body>
+    
+    <audio id="bg-music" loop>
+        <source src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Tours/Enthusiast/Tours_-_01_-_Enthusiast.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="pause-screen">
         <h1 style="font-size: 50px;" id="txt-paused">DURAKLATILDI</h1>
@@ -217,16 +215,88 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // --- TİTREŞİM YARDIMCISI ---
+    // --- SES MOTORU (SFX) ---
+    const AudioEngine = {
+        ctx: null,
+        masterGain: null,
+        initialized: false,
+        bgMusicElement: document.getElementById('bg-music'),
+        
+        init: function() {
+            if (this.initialized) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = 0.3; 
+            this.masterGain.connect(this.ctx.destination);
+            
+            this.bgMusicElement.volume = 0.4;
+            this.bgMusicElement.play().catch(e => console.log("Müzik başlatılamadı:", e));
+
+            this.initialized = true;
+        },
+
+        playTone: function(freq, type, duration, vol=0.5, slideTo=0) {
+            if (!this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            if(slideTo > 0) {
+                osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+            }
+            gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+            
+            // Lowpass filtre
+            if (type === 'triangle') {
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+                osc.connect(filter);
+                filter.connect(gain);
+            } else {
+                osc.connect(gain);
+            }
+            
+            gain.connect(this.masterGain);
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        },
+
+        playShoot: function() { 
+            this.playTone(300, 'triangle', 0.1, 0.1, 50); 
+        },
+
+        playExplosion: function() { 
+            this.playTone(50, 'sawtooth', 0.3, 0.4); 
+            this.playTone(30, 'square', 0.4, 0.4); 
+        },
+        playMenuMove: function() { this.playTone(400, 'sine', 0.05, 0.2); },
+        playMenuSelect: function() { this.playTone(600, 'sine', 0.1, 0.2); },
+        
+        playUlti: function() { 
+            this.playTone(150, 'sawtooth', 1.5, 0.6, 10);
+            setTimeout(() => this.playTone(400, 'square', 0.1, 0.3, 800), 100);
+            setTimeout(() => this.playTone(800, 'sawtooth', 0.1, 0.2, 200), 250);
+            setTimeout(() => this.playTone(60, 'square', 0.5, 0.5), 400); 
+        }
+    };
+
+    // --- TİTREŞİM YARDIMCISI (DUALSENSE FIX) ---
     function rumble(padIndex, duration, weak, strong) {
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
         const pad = pads[padIndex];
+        
         if (pad && pad.vibrationActuator) {
+            // Çoğu tarayıcıda standart
             pad.vibrationActuator.playEffect("dual-rumble", {
                 startDelay: 0,
                 duration: duration,
                 weakMagnitude: weak,
                 strongMagnitude: strong
+            }).catch(e => {
+                // Eğer hata verirse konsola yaz (debug için)
             });
         }
     }
@@ -361,7 +431,6 @@
         currentLang = lang;
         const t = translations[lang];
 
-        // UI Güncellemeleri
         document.querySelectorAll('.lang-btn').forEach(btn => {
             if(btn.dataset.lang === lang) btn.classList.add('active');
             else btn.classList.remove('active');
@@ -617,8 +686,28 @@
                 this.aimAngle=Math.atan2(ay,ax);
                 if(Date.now()-this.lastShot>100){
                     bullets.push(new Bullet(this.x,this.y,this.aimAngle,this.color));
+                    
+                    AudioEngine.playShoot(); 
+                    
                     const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
-                    rumble(padIdx, 50, 0.1, 0.0);
+                    
+                    // RECOIL (Geri Tepme) Hesabı
+                    let aimX = Math.cos(this.aimAngle);
+                    
+                    let strong = 0.4; 
+                    let weak = 0.4;
+                    
+                    if (aimX > 0) { // Sağa ateş -> Sol el hissetsin
+                        strong += aimX * 0.4; 
+                        weak -= aimX * 0.2;   
+                    } 
+                    else { // Sola ateş -> Sağ el hissetsin
+                        weak += Math.abs(aimX) * 0.4; 
+                        strong -= Math.abs(aimX) * 0.2;
+                    }
+
+                    rumble(padIdx, 80, weak, strong); 
+
                     this.lastShot=Date.now(); this.x-=Math.cos(this.aimAngle)*2; this.y-=Math.sin(this.aimAngle)*2;
                 }
             }
@@ -628,10 +717,11 @@
         triggerUlti() {
             if(Date.now()-this.lastUlti>20000) {
                 this.lastUlti=Date.now(); 
-                shockwaves.push(new Shockwave(this.x,this.y,this.color)); 
+                shockwaves.push(new Shockwave(this.x,this.y,this.color));
+                AudioEngine.playUlti(); 
                 shakeTime=30;
                 const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
-                rumble(padIdx, 500, 0.5, 0.8);
+                rumble(padIdx, 600, 0.8, 1.0); 
             }
         }
         updateUI() {
@@ -849,7 +939,10 @@
     const players=[new Player(0,P1_COLOR),new Player(1,P2_COLOR)];
     let bullets=[], enemies=[], particles=[], shockwaves=[], bosses=[], traps=[], healthPacks=[];
 
-    function createExplosion(x,y,c){for(let i=0;i<15;i++)particles.push(new Particle(x,y,c));}
+    function createExplosion(x,y,c){
+        AudioEngine.playExplosion();
+        for(let i=0;i<15;i++)particles.push(new Particle(x,y,c));
+    }
 
     function startWave(waveNum) {
         currentWave = waveNum; isWaveBreak = false;
@@ -865,6 +958,7 @@
             spawnRate = 40; 
             ui.waveTitle.innerText = t.bossFight; ui.waveTitle.classList.add("boss-warning");
             ui.waveInfo.className = "wave-info"; ui.waveInfo.innerText = t.bossMinions;
+            
             if (p1PadIndex !== null) rumble(p1PadIndex, 800, 0.5, 0.5);
             if (p2PadIndex !== null) rumble(p2PadIndex, 800, 0.5, 0.5);
         } else {
@@ -886,6 +980,7 @@
 
     // --- MENÜ KONTROLLERİ ---
     function updateMenuFocus() {
+        AudioEngine.playMenuMove();
         // Pause Menüsü
         const pauseBtns = document.getElementById('pause-menu').children;
         Array.from(pauseBtns).forEach((b, i) => {
@@ -918,6 +1013,7 @@
         players[0].reset(); players[1].reset();
         players[0].score = 0; players[1].score = 0;
         currentWave = 1;
+        AudioEngine.playMenuSelect();
         startWave(1);
     }
 
@@ -938,42 +1034,45 @@
         requestAnimationFrame(loop);
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
 
-        // --- GLOBAL MENU INPUT HANDLING (D-PAD KALDIRILDI) ---
-        // Sadece Analog Çubuk ve LB/RB
+        // --- GLOBAL MENU INPUT HANDLING ---
         let inputDirection = { up: false, down: false, lb: false, rb: false, select: false };
+        let anyButton = false;
         
         for (let i = 0; i < pads.length; i++) {
             const pad = pads[i];
             if (!pad) continue;
             
-            // Sadece Sol Analog Çubuk (Stick) ile Gezinti
+            if (pad.buttons.some(b => b.pressed) || Math.abs(pad.axes[0]) > 0.1 || Math.abs(pad.axes[1]) > 0.1) {
+                anyButton = true;
+            }
+
             if (pad.axes[1] < -0.5) inputDirection.up = true;
             if (pad.axes[1] > 0.5) inputDirection.down = true;
-
-            // D-Pad İptal Edildi (İleride Kullanılacak)
-            // if (pad.buttons[12].pressed) ... 
-            
-            // LB (Button 4) / RB (Button 5) for Language
             if (pad.buttons[4].pressed) inputDirection.lb = true;
             if (pad.buttons[5].pressed) inputDirection.rb = true;
-
-            if (pad.buttons[0].pressed) inputDirection.select = true; // A / Cross
+            if (pad.buttons[0].pressed) inputDirection.select = true; 
         }
 
-        // Debounce Logic for Menu Navigation
+        // SES MOTORUNU BAŞLAT (Browser Policy)
+        if(anyButton && !AudioEngine.initialized) {
+            AudioEngine.init();
+        }
+
         const now = Date.now();
         if (now - menuNavState.lastMove > 200) {
             
-            // 1. DİL SEÇİMİ (START EKRANI) - LB/RB İLE
+            // 1. DİL SEÇİMİ (START EKRANI) - LB/RB
             if (!gameActive && ui.startScreen.style.display !== 'none') {
                 if (inputDirection.rb) {
                     menuNavState.langIndex = (menuNavState.langIndex + 1) % langs.length;
                     setLanguage(langs[menuNavState.langIndex]);
+                    AudioEngine.playMenuMove();
                     menuNavState.lastMove = now;
                 }
                 if (inputDirection.lb) {
                     menuNavState.langIndex = (menuNavState.langIndex - 1 + langs.length) % langs.length;
                     setLanguage(langs[menuNavState.langIndex]);
+                    AudioEngine.playMenuMove();
                     menuNavState.lastMove = now;
                 }
             }
@@ -984,9 +1083,10 @@
                 if (inputDirection.up) { menuNavState.pauseIndex = 0; updateMenuFocus(); menuNavState.lastMove = now; }
                 
                 if (inputDirection.select) {
-                    if (menuNavState.pauseIndex === 0) togglePause(); // Resume
-                    else resetToMenu(); // Menu
-                    menuNavState.lastMove = now + 200; // Extra delay
+                    AudioEngine.playMenuSelect();
+                    if (menuNavState.pauseIndex === 0) togglePause(); 
+                    else resetToMenu(); 
+                    menuNavState.lastMove = now + 200; 
                 }
             }
 
@@ -996,8 +1096,9 @@
                 if (inputDirection.up) { menuNavState.overIndex = 0; updateMenuFocus(); menuNavState.lastMove = now; }
 
                 if (inputDirection.select) {
-                    if (menuNavState.overIndex === 0) restartGame(); // Restart
-                    else resetToMenu(); // Menu
+                    AudioEngine.playMenuSelect();
+                    if (menuNavState.overIndex === 0) restartGame(); 
+                    else resetToMenu(); 
                     menuNavState.lastMove = now + 500;
                 }
             }
@@ -1017,6 +1118,7 @@
                     const isP2 = (p2PadIndex === i);
 
                     if (pad.buttons[0].pressed) {
+                        AudioEngine.playMenuSelect();
                         if (!isP1 && !isP2) {
                             if (p1PadIndex === null) { p1PadIndex = i; rumble(i, 200, 0.5, 0.0); }
                             else if (p2PadIndex === null) { p2PadIndex = i; rumble(i, 200, 0.5, 0.0); }
