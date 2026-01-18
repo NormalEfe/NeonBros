@@ -215,6 +215,13 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // --- ZAMANLAMA AYARLARI (HIZ SABİTLEME) ---
+    // Burası oyunun tüm cihazlarda 144 FPS hızında (PC hızı) hesaplanmasını sağlar.
+    const TARGET_FPS = 144; 
+    const TIME_STEP = 1000 / TARGET_FPS; 
+    let lastTime = 0;
+    let accumulator = 0;
+
     // --- SES MOTORU (SFX) ---
     const AudioEngine = {
         ctx: null,
@@ -289,148 +296,21 @@
         const pad = pads[padIndex];
         
         if (pad && pad.vibrationActuator) {
-            // Çoğu tarayıcıda standart
             pad.vibrationActuator.playEffect("dual-rumble", {
                 startDelay: 0,
                 duration: duration,
                 weakMagnitude: weak,
                 strongMagnitude: strong
-            }).catch(e => {
-                // Eğer hata verirse konsola yaz (debug için)
-            });
+            }).catch(e => {});
         }
     }
 
     // --- DİL SİSTEMİ ---
     const translations = {
-        tr: {
-            paused: "DURAKLATILDI",
-            resume: "DEVAM ET",
-            menu: "ANA MENÜ",
-            restart: "YENİDEN BAŞLA",
-            gameover: "OYUN BİTTİ",
-            totalScore: "TOPLAM PUAN: ",
-            waveReached: "ULAŞILAN DALGA: ",
-            pressBtn: "BAS",
-            pressJoin: "KATIL",
-            wave: "DALGA",
-            enemiesComing: "Düşmanlar Geliyor...",
-            remaining: "Kalan: ",
-            bossHp: "BOSS CANI: ",
-            nextWave: "SONRAKİ DALGA: ",
-            waveComplete: "DALGA TAMAMLANDI!",
-            bossFight: "BOSS SAVAŞI!",
-            bossMinions: "BOSS + MİNYONLAR!",
-            ulti: "Şok Dalgası",
-            ready: "HAZIR!",
-            readySimple: "HAZIR",
-            p1: "OYUNCU 1",
-            p2: "OYUNCU 2",
-            noController: "KOL SEÇİNİZ",
-            startInfo: "(Her İki Oyuncu Hazır Olduğunda Başlar)",
-            revive: "KURTAR",
-            frozen: "DONDU!",
-            controllerPS: "PS KOLU",
-            controllerXbox: "XBOX KOLU",
-            langHint: " : DİL DEĞİŞTİR",
-            navHint: "(SOL ANALOG: Seç / A: Onayla)"
-        },
-        en: {
-            paused: "PAUSED",
-            resume: "RESUME",
-            menu: "MAIN MENU",
-            restart: "RETRY",
-            gameover: "GAME OVER",
-            totalScore: "TOTAL SCORE: ",
-            waveReached: "WAVE REACHED: ",
-            pressBtn: "PRESS",
-            pressJoin: "JOIN",
-            wave: "WAVE",
-            enemiesComing: "Enemies Incoming...",
-            remaining: "Remaining: ",
-            bossHp: "BOSS HP: ",
-            nextWave: "NEXT WAVE: ",
-            waveComplete: "WAVE COMPLETE!",
-            bossFight: "BOSS FIGHT!",
-            bossMinions: "BOSS + MINIONS!",
-            ulti: "Shock Wave",
-            ready: "READY!",
-            readySimple: "READY",
-            p1: "PLAYER 1",
-            p2: "PLAYER 2",
-            noController: "PRESS ANY BTN",
-            startInfo: "(Starts when both players are ready)",
-            revive: "REVIVE",
-            frozen: "FROZEN!",
-            controllerPS: "PS CONTROLLER",
-            controllerXbox: "XBOX CONTROLLER",
-            langHint: " : CHANGE LANGUAGE",
-            navHint: "(LEFT STICK: Select / A: Confirm)"
-        },
-        de: {
-            paused: "PAUSIERT",
-            resume: "FORTSETZEN",
-            menu: "HAUPTMENÜ",
-            restart: "NEUSTART",
-            gameover: "SPIEL VORBEI",
-            totalScore: "GESAMTPUNKTZAHL: ",
-            waveReached: "WELLE ERREICHT: ",
-            pressBtn: "DRÜCK",
-            pressJoin: "BEITRETEN",
-            wave: "WELLE",
-            enemiesComing: "Feinde im Anmarsch...",
-            remaining: "Verbleibend: ",
-            bossHp: "BOSS HP: ",
-            nextWave: "NÄCHSTE WELLE: ",
-            waveComplete: "WELLE ABGESCHLOSSEN!",
-            bossFight: "BOSS-KAMPF!",
-            bossMinions: "BOSS + SCHERGEN!",
-            ulti: "Schockwelle",
-            ready: "BEREIT!",
-            readySimple: "BEREIT",
-            p1: "SPIELER 1",
-            p2: "SPIELER 2",
-            noController: "CONTROLLER WÄHLEN",
-            startInfo: "(Startet, wenn beide Spieler bereit sind)",
-            revive: "RETTEN",
-            frozen: "EINGEFROREN!",
-            controllerPS: "PS CONTROLLER",
-            controllerXbox: "XBOX CONTROLLER",
-            langHint: " : SPRACHE ÄNDERN",
-            navHint: "(LINKER STICK: Wählen / A: Bestätigen)"
-        },
-        zh: {
-            paused: "暂停",
-            resume: "继续",
-            menu: "主菜单",
-            restart: "重试",
-            gameover: "游戏结束",
-            totalScore: "总分: ",
-            waveReached: "到达波数: ",
-            pressBtn: "按",
-            pressJoin: "加入",
-            wave: "波",
-            enemiesComing: "敌人来袭...",
-            remaining: "剩余: ",
-            bossHp: "BOSS血量: ",
-            nextWave: "下一波: ",
-            waveComplete: "波数完成!",
-            bossFight: "BOSS战!",
-            bossMinions: "BOSS + 小兵!",
-            ulti: "冲击波",
-            ready: "准备就绪!",
-            readySimple: "准备",
-            p1: "玩家 1",
-            p2: "玩家 2",
-            noController: "按任意键",
-            startInfo: "(当两名玩家准备好时开始)",
-            revive: "复活",
-            frozen: "冻结!",
-            controllerPS: "PS手柄",
-            controllerXbox: "XBOX手柄",
-            langHint: " : 更改语言",
-            navHint: "(左摇杆: 选择 / A: 确认)"
-        }
+        tr: { paused: "DURAKLATILDI", resume: "DEVAM ET", menu: "ANA MENÜ", restart: "YENİDEN BAŞLA", gameover: "OYUN BİTTİ", totalScore: "TOPLAM PUAN: ", waveReached: "ULAŞILAN DALGA: ", pressBtn: "BAS", pressJoin: "KATIL", wave: "DALGA", enemiesComing: "Düşmanlar Geliyor...", remaining: "Kalan: ", bossHp: "BOSS CANI: ", nextWave: "SONRAKİ DALGA: ", waveComplete: "DALGA TAMAMLANDI!", bossFight: "BOSS SAVAŞI!", bossMinions: "BOSS + MİNYONLAR!", ulti: "Şok Dalgası", ready: "HAZIR!", readySimple: "HAZIR", p1: "OYUNCU 1", p2: "OYUNCU 2", noController: "KOL SEÇİNİZ", startInfo: "(Her İki Oyuncu Hazır Olduğunda Başlar)", revive: "KURTAR", frozen: "DONDU!", controllerPS: "PS KOLU", controllerXbox: "XBOX KOLU", langHint: " : DİL DEĞİŞTİR", navHint: "(SOL ANALOG: Seç / A: Onayla)" },
+        en: { paused: "PAUSED", resume: "RESUME", menu: "MAIN MENU", restart: "RETRY", gameover: "GAME OVER", totalScore: "TOTAL SCORE: ", waveReached: "WAVE REACHED: ", pressBtn: "PRESS", pressJoin: "JOIN", wave: "WAVE", enemiesComing: "Enemies Incoming...", remaining: "Remaining: ", bossHp: "BOSS HP: ", nextWave: "NEXT WAVE: ", waveComplete: "WAVE COMPLETE!", bossFight: "BOSS FIGHT!", bossMinions: "BOSS + MINIONS!", ulti: "Shock Wave", ready: "READY!", readySimple: "READY", p1: "PLAYER 1", p2: "PLAYER 2", noController: "PRESS ANY BTN", startInfo: "(Starts when both players are ready)", revive: "REVIVE", frozen: "FROZEN!", controllerPS: "PS CONTROLLER", controllerXbox: "XBOX CONTROLLER", langHint: " : CHANGE LANGUAGE", navHint: "(LEFT STICK: Select / A: Confirm)" },
+        de: { paused: "PAUSIERT", resume: "FORTSETZEN", menu: "HAUPTMENÜ", restart: "NEUSTART", gameover: "SPIEL VORBEI", totalScore: "GESAMTPUNKTZAHL: ", waveReached: "WELLE ERREICHT: ", pressBtn: "DRÜCK", pressJoin: "BEITRETEN", wave: "WELLE", enemiesComing: "Feinde im Anmarsch...", remaining: "Verbleibend: ", bossHp: "BOSS HP: ", nextWave: "NÄCHSTE WELLE: ", waveComplete: "WELLE ABGESCHLOSSEN!", bossFight: "BOSS-KAMPF!", bossMinions: "BOSS + SCHERGEN!", ulti: "Schockwelle", ready: "BEREIT!", readySimple: "BEREIT", p1: "SPIELER 1", p2: "SPIELER 2", noController: "CONTROLLER WÄHLEN", startInfo: "(Startet, wenn beide Spieler bereit sind)", revive: "RETTEN", frozen: "EINGEFROREN!", controllerPS: "PS CONTROLLER", controllerXbox: "XBOX CONTROLLER", langHint: " : SPRACHE ÄNDERN", navHint: "(LINKER STICK: Wählen / A: Bestätigen)" },
+        zh: { paused: "暂停", resume: "继续", menu: "主菜单", restart: "重试", gameover: "游戏结束", totalScore: "总分: ", waveReached: "到达波数: ", pressBtn: "按", pressJoin: "加入", wave: "波", enemiesComing: "敌人来袭...", remaining: "剩余: ", bossHp: "BOSS血量: ", nextWave: "下一波: ", waveComplete: "波数完成!", bossFight: "BOSS战!", bossMinions: "BOSS + 小兵!", ulti: "冲击波", ready: "准备就绪!", readySimple: "准备", p1: "玩家 1", p2: "玩家 2", noController: "按任意键", startInfo: "(当两名玩家准备好时开始)", revive: "复活", frozen: "冻结!", controllerPS: "PS手柄", controllerXbox: "XBOX手柄", langHint: " : 更改语言", navHint: "(左摇杆: 选择 / A: 确认)" }
     };
 
     let currentLang = 'tr'; 
@@ -457,7 +337,6 @@
         document.getElementById('txt-p2-title').innerText = t.p2;
         document.getElementById('txt-start-info').innerText = t.startInfo;
         
-        // YENİ EKLENEN KISIMLAR:
         document.getElementById('txt-lang-hint').innerText = t.langHint;
         document.getElementById('txt-nav-hint').innerText = t.navHint;
         
@@ -705,18 +584,10 @@
                     
                     // RECOIL (Geri Tepme) Hesabı
                     let aimX = Math.cos(this.aimAngle);
-                    
                     let strong = 0.4; 
                     let weak = 0.4;
-                    
-                    if (aimX > 0) { // Sağa ateş -> Sol el hissetsin
-                        strong += aimX * 0.4; 
-                        weak -= aimX * 0.2;   
-                    } 
-                    else { // Sola ateş -> Sağ el hissetsin
-                        weak += Math.abs(aimX) * 0.4; 
-                        strong -= Math.abs(aimX) * 0.2;
-                    }
+                    if (aimX > 0) { strong += aimX * 0.4; weak -= aimX * 0.2; } 
+                    else { weak += Math.abs(aimX) * 0.4; strong -= Math.abs(aimX) * 0.2; }
 
                     rumble(padIdx, 80, weak, strong); 
 
@@ -1042,11 +913,7 @@
         updateControllerUI();
     }
 
-    function loop() {
-        requestAnimationFrame(loop);
-        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-
-        // --- GLOBAL MENU INPUT HANDLING ---
+    function handleMenuInputs(pads) {
         let inputDirection = { up: false, down: false, lb: false, rb: false, select: false };
         let anyButton = false;
         
@@ -1065,7 +932,7 @@
             if (pad.buttons[0].pressed) inputDirection.select = true; 
         }
 
-        // SES MOTORUNU BAŞLAT (Browser Policy)
+        // SES MOTORUNU BAŞLAT
         if(anyButton && !AudioEngine.initialized) {
             AudioEngine.init();
         }
@@ -1073,7 +940,7 @@
         const now = Date.now();
         if (now - menuNavState.lastMove > 200) {
             
-            // 1. DİL SEÇİMİ (START EKRANI) - LB/RB
+            // 1. DİL SEÇİMİ (START EKRANI)
             if (!gameActive && ui.startScreen.style.display !== 'none') {
                 if (inputDirection.rb) {
                     menuNavState.langIndex = (menuNavState.langIndex + 1) % langs.length;
@@ -1116,7 +983,7 @@
             }
         }
 
-        // --- MENÜ VE KOL SEÇİM MANTIĞI ---
+        // KOL SEÇİM MANTIĞI (Sadece oyun başlamadan önce)
         if (!gameActive) {
             for (let i = 0; i < pads.length; i++) {
                 const pad = pads[i];
@@ -1162,10 +1029,13 @@
                 ui.startScreen.style.display='none'; 
                 startWave(1); 
             }
-            return;
         }
+    }
 
-        // --- OYUN İÇİ START ---
+    function updateGameLogic(pads) {
+        if(isPaused || isGameOver) return;
+
+        // Start/Pause Kontrolü (Oyun içindeyken)
         let p1Start = p1PadIndex !== null && pads[p1PadIndex] && pads[p1PadIndex].buttons[9].pressed;
         let p2Start = p2PadIndex !== null && pads[p2PadIndex] && pads[p2PadIndex].buttons[9].pressed;
 
@@ -1173,26 +1043,13 @@
             if(!isGameOver) { togglePause(); lastPauseToggle=Date.now(); }
         }
 
-        const t = translations[currentLang]; 
-
-        if(isPaused || isGameOver) {
-            if(isGameOver && ui.gameoverScreen.style.display !== 'flex') {
-                 ui.gameoverScreen.style.display='flex';
-                 ui.finalWaveDisplay.innerText = t.waveReached + currentWave;
-                 ui.totalScoreDisplay.innerText = t.totalScore + (players[0].score + players[1].score);
-                 resetMenuState();
-            }
-            return; 
-        }
-
-        ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width, canvas.height);
-        if(shakeTime>0) { ctx.save(); ctx.translate((Math.random()-0.5)*15,(Math.random()-0.5)*15); shakeTime--; }
-        ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.beginPath();
-        for(let x=0;x<canvas.width;x+=50){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
-        for(let y=0;y<canvas.height;y+=50){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);} ctx.stroke();
+        // Shake efektini mantık döngüsünde azaltıyoruz
+        if(shakeTime>0) shakeTime--;
 
         if(p1PadIndex !== null && pads[p1PadIndex]) players[0].update(pads[p1PadIndex]);
         if(p2PadIndex !== null && pads[p2PadIndex]) players[1].update(pads[p2PadIndex]);
+
+        const t = translations[currentLang];
 
         if(!isWaveBreak) {
             if (waveEnemiesSpawned < waveEnemiesTotal) {
@@ -1216,7 +1073,7 @@
             if(isBossWave && bosses.length > 0) ui.waveInfo.innerText = t.bossHp + Math.floor(bosses[0].hp);
             else ui.waveInfo.innerText = t.remaining + (waveEnemiesTotal - waveEnemiesKilled);
         } else {
-            if(spawnTimer%60===0) {
+            if(spawnTimer%60===0) { // Buradaki 60 mantığı fixed stepte sabit olduğu için artık saniye şaşmaz
                 waveBreakTimer--; ui.waveInfo.innerText=t.nextWave + waveBreakTimer + "s";
                 if(waveBreakTimer<=0) startWave(currentWave+1);
             }
@@ -1237,12 +1094,12 @@
             } else me.reviveProgress=0;
         });
 
-        shockwaves.forEach((s,i)=>{if(s.active){s.update();s.draw();}else shockwaves.splice(i,1);});
+        shockwaves.forEach((s,i)=>{if(s.active){s.update();}else shockwaves.splice(i,1);});
         
         for(let i=bosses.length-1; i>=0; i--){
             let b = bosses[i];
             if(b.hp > 0) {
-                b.update(); b.draw();
+                b.update();
                 players.forEach(p => { 
                     if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
                     if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-b.x, p.y-b.y) < p.r + b.r) { 
@@ -1252,11 +1109,8 @@
             } else bosses.splice(i, 1);
         }
 
-        if(p1PadIndex !== null) players[0].draw(); 
-        if(p2PadIndex !== null) players[1].draw();
-
         for(let i=bullets.length-1;i>=0;i--){
-            let b=bullets[i]; b.update(); b.draw();
+            let b=bullets[i]; b.update();
             if(b.x<0||b.x>canvas.width||b.y<0||b.y>canvas.height){bullets.splice(i,1);continue;}
             
             let hit = false;
@@ -1286,7 +1140,7 @@
         }
         
         for(let i=enemies.length-1;i>=0;i--){
-            let e=enemies[i]; e.update(); e.draw();
+            let e=enemies[i]; e.update();
             for(let j=0; j<players.length; j++){
                 let p = players[j];
                 if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) continue;
@@ -1298,7 +1152,7 @@
         }
 
         for(let i=traps.length-1; i>=0; i--) {
-            let t = traps[i]; t.draw();
+            let t = traps[i]; 
             players.forEach(p => {
                 if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
                 if (!p.isDead && Math.hypot(p.x-t.x, p.y-t.y) < t.r + p.r) {
@@ -1307,7 +1161,7 @@
             });
         }
         for(let i=healthPacks.length-1; i>=0; i--) {
-            let h = healthPacks[i]; h.draw();
+            let h = healthPacks[i]; 
             players.forEach(p => {
                 if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
                 if (!p.isDead && Math.hypot(p.x-h.x, p.y-h.y) < h.r + p.r) {
@@ -1316,17 +1170,85 @@
             });
         }
         
-        particles.forEach((p,i)=>{p.update();p.draw();if(p.life<=0)particles.splice(i,1);});
-        if(shakeTime>0) ctx.restore();
+        particles.forEach((p,i)=>{p.update(); if(p.life<=0)particles.splice(i,1);});
         
-        ui.p1.score.innerText = `P1: ${players[0].score}`; ui.p2.score.innerText = `P2: ${players[1].score}`;
-        
+        // Oyun Bitti Kontrolü
         let activePlayersCount = (p1PadIndex !== null ? 1 : 0) + (p2PadIndex !== null ? 1 : 0);
         let deadPlayersCount = (p1PadIndex !== null && players[0].isDead ? 1 : 0) + (p2PadIndex !== null && players[1].isDead ? 1 : 0);
         
         if(activePlayersCount > 0 && activePlayersCount === deadPlayersCount) isGameOver=true;
     }
-    loop();
+
+    function drawGame() {
+        if(isPaused || isGameOver) {
+            if(isGameOver && ui.gameoverScreen.style.display !== 'flex') {
+                 const t = translations[currentLang];
+                 ui.gameoverScreen.style.display='flex';
+                 ui.finalWaveDisplay.innerText = t.waveReached + currentWave;
+                 ui.totalScoreDisplay.innerText = t.totalScore + (players[0].score + players[1].score);
+                 resetMenuState();
+            }
+            return; 
+        }
+
+        ctx.fillStyle = "#050505"; ctx.fillRect(0,0,canvas.width, canvas.height);
+        
+        if(shakeTime>0) { 
+            ctx.save(); 
+            ctx.translate((Math.random()-0.5)*15,(Math.random()-0.5)*15); 
+        }
+
+        ctx.strokeStyle="#111"; ctx.lineWidth=2; ctx.beginPath();
+        for(let x=0;x<canvas.width;x+=50){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
+        for(let y=0;y<canvas.height;y+=50){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);} ctx.stroke();
+
+        shockwaves.forEach(s => s.draw());
+        traps.forEach(t => t.draw());
+        healthPacks.forEach(h => h.draw());
+        bosses.forEach(b => b.draw());
+        
+        if(p1PadIndex !== null) players[0].draw(); 
+        if(p2PadIndex !== null) players[1].draw();
+        
+        bullets.forEach(b => b.draw());
+        enemies.forEach(e => e.draw());
+        particles.forEach(p => p.draw());
+
+        if(shakeTime>0) ctx.restore();
+
+        ui.p1.score.innerText = `P1: ${players[0].score}`; 
+        ui.p2.score.innerText = `P2: ${players[1].score}`;
+    }
+
+    // --- YENİ OYUN DÖNGÜSÜ (FIXED TIMESTEP) ---
+    function loop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        let deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        // Çok büyük takılmalarda sonsuz döngüyü önlemek için limit
+        if (deltaTime > 100) deltaTime = 100;
+
+        accumulator += deltaTime;
+
+        // Kontrolcüleri her karede oku
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        handleMenuInputs(pads);
+
+        // Biriken zamanı (accumulator) sabit adımlarla (TIME_STEP) tüket
+        // Bu sayede ekran 60hz de olsa mantık 144hz (TIME_STEP) hızında çalışır
+        while (accumulator >= TIME_STEP) {
+            updateGameLogic(pads);
+            accumulator -= TIME_STEP;
+        }
+        
+        drawGame();
+        requestAnimationFrame(loop);
+    }
+    
+    // Döngüyü başlat
+    requestAnimationFrame(loop);
+
     window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 </script>
 </body>
