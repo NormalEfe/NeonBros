@@ -134,7 +134,7 @@
             <div class="menu-btn selected" id="btn-resume">DEVAM ET</div>
             <div class="menu-btn" id="btn-menu-pause">ANA MENÜ</div>
         </div>
-        <div style="margin-top: 30px; font-size: 12px; color: #666;">
+        <div id="txt-nav-hint" style="margin-top: 30px; font-size: 12px; color: #666;">
             (SOL ANALOG: Seç / A: Onayla)
         </div>
     </div>
@@ -203,7 +203,7 @@
             <div class="lang-btn" data-lang="zh">中文</div>
         </div>
         <div style="margin-top: 10px; font-size: 10px; color: #444; display: flex; align-items: center; gap: 5px;">
-            <span class="bumper-icon">LB</span> / <span class="bumper-icon">RB</span> : DİL DEĞİŞTİR
+            <span class="bumper-icon">LB</span> / <span class="bumper-icon">RB</span> <span id="txt-lang-hint"> : DİL DEĞİŞTİR</span>
         </div>
     </div>
 
@@ -331,7 +331,9 @@
             revive: "KURTAR",
             frozen: "DONDU!",
             controllerPS: "PS KOLU",
-            controllerXbox: "XBOX KOLU"
+            controllerXbox: "XBOX KOLU",
+            langHint: " : DİL DEĞİŞTİR",
+            navHint: "(SOL ANALOG: Seç / A: Onayla)"
         },
         en: {
             paused: "PAUSED",
@@ -361,7 +363,9 @@
             revive: "REVIVE",
             frozen: "FROZEN!",
             controllerPS: "PS CONTROLLER",
-            controllerXbox: "XBOX CONTROLLER"
+            controllerXbox: "XBOX CONTROLLER",
+            langHint: " : CHANGE LANGUAGE",
+            navHint: "(LEFT STICK: Select / A: Confirm)"
         },
         de: {
             paused: "PAUSIERT",
@@ -391,7 +395,9 @@
             revive: "RETTEN",
             frozen: "EINGEFROREN!",
             controllerPS: "PS CONTROLLER",
-            controllerXbox: "XBOX CONTROLLER"
+            controllerXbox: "XBOX CONTROLLER",
+            langHint: " : SPRACHE ÄNDERN",
+            navHint: "(LINKER STICK: Wählen / A: Bestätigen)"
         },
         zh: {
             paused: "暂停",
@@ -421,7 +427,9 @@
             revive: "复活",
             frozen: "冻结!",
             controllerPS: "PS手柄",
-            controllerXbox: "XBOX手柄"
+            controllerXbox: "XBOX手柄",
+            langHint: " : 更改语言",
+            navHint: "(左摇杆: 选择 / A: 确认)"
         }
     };
 
@@ -448,6 +456,10 @@
         document.getElementById('txt-p1-title').innerText = t.p1;
         document.getElementById('txt-p2-title').innerText = t.p2;
         document.getElementById('txt-start-info').innerText = t.startInfo;
+        
+        // YENİ EKLENEN KISIMLAR:
+        document.getElementById('txt-lang-hint').innerText = t.langHint;
+        document.getElementById('txt-nav-hint').innerText = t.navHint;
         
         document.querySelectorAll('.txt-press-btn').forEach(el => el.innerText = t.pressJoin);
         document.querySelectorAll('.txt-ready').forEach(el => el.innerText = t.readySimple);
