@@ -2,14 +2,14 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Bros: Geometric Warfare</title>
+    <title>Neon Bros: Geometric Warfare (Controller Edition)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-        /* Font ailesine sans-serif ekledik ki Çince karakterler bozulmasın */
-        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Orbitron', 'Microsoft YaHei', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #050505; font-family: 'Orbitron', 'Microsoft YaHei', sans-serif; user-select: none; }
         canvas { display: block; }
         
+        /* OYUN İÇİ BUTONLAR */
         .btn {
             display: inline-flex; justify-content: center; align-items: center;
             width: 28px; height: 28px; border-radius: 50%; 
@@ -20,9 +20,16 @@
         .xbox-x { background: #1a1a1a; color: rgb(27, 109, 216); border: 2px solid #414040; font-size: 16px; }
 
         .ps-cross { background: #1a1a1a; border: 2px solid #414040; }
-        .ps-cross::after { content: '✕'; color: #4b8ac4; font-size: 16px; font-weight: bold; }
+        .ps-cross::after { content: '✕'; color: #4f9ee7; font-size: 16px; font-weight: bold; }
         .ps-square { background: #1a1a1a; border: 2px solid #414040; }
         .ps-square::after { content: ''; display: block; width: 10px; height: 10px; border: 3px solid #d856ac; border-radius: 2px; }
+        
+        /* LB / RB İkonları */
+        .bumper-icon {
+            display: inline-block; padding: 2px 8px; background: #333; 
+            border: 1px solid #666; border-radius: 4px; color: #fff; 
+            font-size: 10px; font-weight: bold; margin: 0 5px;
+        }
 
         .sys-btn {
             display: inline-flex; align-items: center; justify-content: center;
@@ -69,7 +76,7 @@
             color: white; z-index: 10; pointer-events: auto;
         }
         #start-screen { background: radial-gradient(circle, rgba(10,10,20,0.98) 0%, #000 100%); }
-        #pause-screen { background: rgba(0, 0, 0, 0.85); display: none; z-index: 20; pointer-events: none; }
+        #pause-screen { background: rgba(0, 0, 0, 0.85); display: none; z-index: 20; }
         #gameover-screen { background: rgba(0, 0, 0, 0.95); display: none; z-index: 30; }
 
         h1 { font-size: 70px; margin: 0; letter-spacing: 5px; background: linear-gradient(to right, #00f7ff, #ffffff, #ffaa00); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 30px rgba(255,255,255,0.3); }
@@ -90,19 +97,33 @@
 
         .score-detail { font-size: 30px; margin-top: 20px; color: #fff; font-weight: bold; }
         .score-sub { font-size: 16px; color: #aaa; margin-top: 5px; }
+        .txt-waiting { animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
 
         /* DİL SEÇİM BUTONLARI */
         .lang-bar {
-            margin-top: 20px; display: flex; gap: 10px;
+            margin-top: 50px; display: flex; gap: 10px;
         }
         .lang-btn {
-            background: #222; color: #888; border: 1px solid #444; padding: 5px 10px;
-            cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px;
-            transition: 0.2s;
+            background: #222; color: #888; border: 1px solid #444; padding: 10px 20px;
+            cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 14px;
+            transition: 0.2s; min-width: 80px; text-align: center;
         }
-        .lang-btn:hover, .lang-btn.active {
+        .lang-btn.active {
             background: #00f7ff; color: #000; border-color: #00f7ff;
-            box-shadow: 0 0 10px #00f7ff;
+            box-shadow: 0 0 15px #00f7ff; font-weight: bold; transform: scale(1.1);
+        }
+
+        /* YENİ MENÜ BUTONLARI (PAUSE & GAMEOVER) */
+        .menu-options { display: flex; flex-direction: column; gap: 15px; margin-top: 40px; }
+        .menu-btn {
+            background: transparent; border: 2px solid #555; color: #aaa;
+            padding: 15px 40px; font-size: 18px; font-family: 'Orbitron', sans-serif;
+            cursor: pointer; transition: 0.2s; text-align: center; width: 200px;
+        }
+        .menu-btn.selected {
+            border-color: #ffaa00; color: #ffaa00; background: rgba(255, 170, 0, 0.1);
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.3); transform: scale(1.05); font-weight: bold;
         }
 
     </style>
@@ -111,8 +132,12 @@
 
     <div id="pause-screen">
         <h1 style="font-size: 50px;" id="txt-paused">DURAKLATILDI</h1>
-        <div style="margin-top: 20px; font-size: 18px; color: #aaa;">
-            <span id="txt-resume-label">Devam:</span> <b>MENÜ</b>
+        <div class="menu-options" id="pause-menu">
+            <div class="menu-btn selected" id="btn-resume">DEVAM ET</div>
+            <div class="menu-btn" id="btn-menu-pause">ANA MENÜ</div>
+        </div>
+        <div style="margin-top: 30px; font-size: 12px; color: #666;">
+            (SOL ANALOG: Seç / A: Onayla)
         </div>
     </div>
 
@@ -120,12 +145,10 @@
         <h1 style="font-size: 60px;" id="txt-gameover">OYUN BİTTİ</h1>
         <div id="total-score-display" class="score-detail">TOPLAM PUAN: 0</div>
         <div id="final-wave-display" class="score-sub">ULAŞILAN DALGA: 1</div>
-        <div style="margin-top: 50px; font-size: 14px; color: #888; display:flex; align-items:center; gap:5px;">
-            <span id="txt-return">MENÜYE DÖNMEK İÇİN</span> 
-            <div class="sys-btn xbox-menu"></div> 
-            / 
-            <div class="sys-btn ps-opt"></div> 
-            <span id="txt-press">BASIN</span>
+        
+        <div class="menu-options" id="gameover-menu">
+            <div class="menu-btn selected" id="btn-restart">YENİDEN BAŞLA</div>
+            <div class="menu-btn" id="btn-menu-over">ANA MENÜ</div>
         </div>
     </div>
 
@@ -162,24 +185,27 @@
         <div class="status-area">
             <div id="p1-card" class="player-card">
                 <div style="font-size:20px; font-weight:bold; color:#00f7ff;" id="txt-p1-title">OYUNCU 1</div>
-                <div id="p1-con-name" class="con-name">KOL YOK</div>
-                <div id="p1-prompt" class="start-prompt"><span id="p1-start-icon" class="btn"></span> <span class="txt-press-btn">BAS</span></div>
+                <div id="p1-con-name" class="con-name txt-waiting">KOL SEÇİNİZ</div>
+                <div id="p1-prompt" class="start-prompt"><span id="p1-start-icon" class="btn" style="border:1px dashed #555; color:#555">?</span> <span class="txt-press-btn">KATIL</span></div>
                 <div class="ready-text txt-ready">HAZIR</div>
             </div>
             <div id="p2-card" class="player-card">
                 <div style="font-size:20px; font-weight:bold; color:#ffaa00;" id="txt-p2-title">OYUNCU 2</div>
-                <div id="p2-con-name" class="con-name">KOL YOK</div>
-                <div id="p2-prompt" class="start-prompt"><span id="p2-start-icon" class="btn"></span> <span class="txt-press-btn">BAS</span></div>
+                <div id="p2-con-name" class="con-name txt-waiting">KOL SEÇİNİZ</div>
+                <div id="p2-prompt" class="start-prompt"><span id="p2-start-icon" class="btn" style="border:1px dashed #555; color:#555">?</span> <span class="txt-press-btn">KATIL</span></div>
                 <div class="ready-text txt-ready">HAZIR</div>
             </div>
         </div>
         <div style="margin-top:30px; font-size:12px; color:#555;" id="txt-start-info">(Her İki Oyuncu Hazır Olduğunda Başlar)</div>
 
-        <div class="lang-bar">
-            <div class="lang-btn active" onclick="setLanguage('tr')">TÜRKÇE</div>
-            <div class="lang-btn" onclick="setLanguage('en')">ENGLISH</div>
-            <div class="lang-btn" onclick="setLanguage('de')">DEUTSCH</div>
-            <div class="lang-btn" onclick="setLanguage('zh')">中文</div>
+        <div class="lang-bar" id="lang-menu">
+            <div class="lang-btn active" data-lang="tr">TÜRKÇE</div>
+            <div class="lang-btn" data-lang="en">ENGLISH</div>
+            <div class="lang-btn" data-lang="de">DEUTSCH</div>
+            <div class="lang-btn" data-lang="zh">中文</div>
+        </div>
+        <div style="margin-top: 10px; font-size: 10px; color: #444; display: flex; align-items: center; gap: 5px;">
+            <span class="bumper-icon">LB</span> / <span class="bumper-icon">RB</span> : DİL DEĞİŞTİR
         </div>
     </div>
 
@@ -191,17 +217,32 @@
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // --- TİTREŞİM YARDIMCISI ---
+    function rumble(padIndex, duration, weak, strong) {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+        const pad = pads[padIndex];
+        if (pad && pad.vibrationActuator) {
+            pad.vibrationActuator.playEffect("dual-rumble", {
+                startDelay: 0,
+                duration: duration,
+                weakMagnitude: weak,
+                strongMagnitude: strong
+            });
+        }
+    }
+
     // --- DİL SİSTEMİ ---
     const translations = {
         tr: {
             paused: "DURAKLATILDI",
-            resume: "Devam:",
+            resume: "DEVAM ET",
+            menu: "ANA MENÜ",
+            restart: "YENİDEN BAŞLA",
             gameover: "OYUN BİTTİ",
             totalScore: "TOPLAM PUAN: ",
             waveReached: "ULAŞILAN DALGA: ",
-            returnMenu: "MENÜYE DÖNMEK İÇİN",
-            press: "BASIN",
             pressBtn: "BAS",
+            pressJoin: "KATIL",
             wave: "DALGA",
             enemiesComing: "Düşmanlar Geliyor...",
             remaining: "Kalan: ",
@@ -215,7 +256,7 @@
             readySimple: "HAZIR",
             p1: "OYUNCU 1",
             p2: "OYUNCU 2",
-            noController: "KOL YOK",
+            noController: "KOL SEÇİNİZ",
             startInfo: "(Her İki Oyuncu Hazır Olduğunda Başlar)",
             revive: "KURTAR",
             frozen: "DONDU!",
@@ -224,13 +265,14 @@
         },
         en: {
             paused: "PAUSED",
-            resume: "Resume:",
+            resume: "RESUME",
+            menu: "MAIN MENU",
+            restart: "RETRY",
             gameover: "GAME OVER",
             totalScore: "TOTAL SCORE: ",
             waveReached: "WAVE REACHED: ",
-            returnMenu: "TO RETURN TO MENU",
-            press: "PRESS",
             pressBtn: "PRESS",
+            pressJoin: "JOIN",
             wave: "WAVE",
             enemiesComing: "Enemies Incoming...",
             remaining: "Remaining: ",
@@ -244,7 +286,7 @@
             readySimple: "READY",
             p1: "PLAYER 1",
             p2: "PLAYER 2",
-            noController: "NO CONTROLLER",
+            noController: "PRESS ANY BTN",
             startInfo: "(Starts when both players are ready)",
             revive: "REVIVE",
             frozen: "FROZEN!",
@@ -253,13 +295,14 @@
         },
         de: {
             paused: "PAUSIERT",
-            resume: "Fortsetzen:",
+            resume: "FORTSETZEN",
+            menu: "HAUPTMENÜ",
+            restart: "NEUSTART",
             gameover: "SPIEL VORBEI",
             totalScore: "GESAMTPUNKTZAHL: ",
             waveReached: "WELLE ERREICHT: ",
-            returnMenu: "ZUM HAUPTMENÜ",
-            press: "DRÜCKEN",
             pressBtn: "DRÜCK",
+            pressJoin: "BEITRETEN",
             wave: "WELLE",
             enemiesComing: "Feinde im Anmarsch...",
             remaining: "Verbleibend: ",
@@ -273,7 +316,7 @@
             readySimple: "BEREIT",
             p1: "SPIELER 1",
             p2: "SPIELER 2",
-            noController: "KEIN CONTROLLER",
+            noController: "CONTROLLER WÄHLEN",
             startInfo: "(Startet, wenn beide Spieler bereit sind)",
             revive: "RETTEN",
             frozen: "EINGEFROREN!",
@@ -282,13 +325,14 @@
         },
         zh: {
             paused: "暂停",
-            resume: "继续:",
+            resume: "继续",
+            menu: "主菜单",
+            restart: "重试",
             gameover: "游戏结束",
             totalScore: "总分: ",
             waveReached: "到达波数: ",
-            returnMenu: "返回菜单",
-            press: "按",
             pressBtn: "按",
+            pressJoin: "加入",
             wave: "波",
             enemiesComing: "敌人来袭...",
             remaining: "剩余: ",
@@ -302,7 +346,7 @@
             readySimple: "准备",
             p1: "玩家 1",
             p2: "玩家 2",
-            noController: "无手柄",
+            noController: "按任意键",
             startInfo: "(当两名玩家准备好时开始)",
             revive: "复活",
             frozen: "冻结!",
@@ -311,35 +355,36 @@
         }
     };
 
-    let currentLang = 'tr'; // Varsayılan dil
+    let currentLang = 'tr'; 
 
     function setLanguage(lang) {
         currentLang = lang;
         const t = translations[lang];
 
-        // Buton Aktifliği
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        // UI Güncellemeleri
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            if(btn.dataset.lang === lang) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
 
-        // HTML Metinlerini Güncelle
         document.getElementById('txt-paused').innerText = t.paused;
-        document.getElementById('txt-resume-label').innerText = t.resume;
+        document.getElementById('btn-resume').innerText = t.resume;
+        document.getElementById('btn-menu-pause').innerText = t.menu;
+        document.getElementById('btn-restart').innerText = t.restart;
+        document.getElementById('btn-menu-over').innerText = t.menu;
+
         document.getElementById('txt-gameover').innerText = t.gameover;
-        document.getElementById('txt-return').innerText = t.returnMenu;
-        document.getElementById('txt-press').innerText = t.press;
         document.getElementById('txt-ulti-1').innerText = t.ulti;
         document.getElementById('txt-ulti-2').innerText = t.ulti;
         document.getElementById('txt-p1-title').innerText = t.p1;
         document.getElementById('txt-p2-title').innerText = t.p2;
         document.getElementById('txt-start-info').innerText = t.startInfo;
         
-        // Class tabanlılar
-        document.querySelectorAll('.txt-press-btn').forEach(el => el.innerText = t.pressBtn);
+        document.querySelectorAll('.txt-press-btn').forEach(el => el.innerText = t.pressJoin);
         document.querySelectorAll('.txt-ready').forEach(el => el.innerText = t.readySimple);
 
-        // UI Güncellemeleri (Reset durumunda)
         if (!gameActive) {
-            updateControllerNames();
+            updateControllerUI();
         }
     }
 
@@ -363,10 +408,22 @@
     let shakeTime = 0;
     
     let lastPauseToggle = 0;
+    
+    // --- KONTROLCÜ VE MENÜ ---
+    let p1PadIndex = null;
+    let p2PadIndex = null;
     let p1Ready = false;
     let p2Ready = false;
-    let p1BtnLast = false;
-    let p2BtnLast = false;
+    let buttonStates = {}; 
+
+    // Menu Navigation System
+    let menuNavState = {
+        lastMove: 0,
+        pauseIndex: 0, 
+        overIndex: 0, 
+        langIndex: 0  
+    };
+    const langs = ['tr', 'en', 'de', 'zh'];
 
     let currentWave = 1;
     let waveEnemiesTotal = 0;
@@ -390,6 +447,9 @@
         const p = playerId === 0 ? ui.p1 : ui.p2;
         p.startIcon.className = 'btn'; p.startIcon.innerText = ''; 
         p.ultiIcon.className = 'btn'; p.ultiIcon.innerText = ''; 
+        p.startIcon.style.border = "2px solid #414040"; 
+        p.startIcon.style.color = "";
+
         if (type === 'ps') {
             p.startIcon.classList.add('ps-cross');
             p.ultiIcon.classList.add('ps-square');
@@ -399,18 +459,41 @@
         }
     }
 
-    function updateControllerNames(pads = []) {
-        // Dil değişince "KOL YOK" yazısını güncellemek için yardımcı fonksiyon
+    function updateControllerUI() {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
         const t = translations[currentLang];
-        
-        if (pads[0]) ui.p1.name.innerText = getControllerType(pads[0])==='ps' ? t.controllerPS : t.controllerXbox;
-        else ui.p1.name.innerText = t.noController;
 
-        if (pads[1]) ui.p2.name.innerText = getControllerType(pads[1])==='ps' ? t.controllerPS : t.controllerXbox;
-        else ui.p2.name.innerText = t.noController;
+        if (p1PadIndex !== null && pads[p1PadIndex]) {
+            ui.p1.card.classList.add('connected');
+            if(p1Ready) ui.p1.card.classList.add('ready'); else ui.p1.card.classList.remove('ready');
+            const type = getControllerType(pads[p1PadIndex]);
+            ui.p1.name.innerText = (type === 'ps' ? t.controllerPS : t.controllerXbox) + ` [ID:${p1PadIndex}]`;
+            ui.p1.name.classList.remove('txt-waiting');
+            updateIcons(0, type);
+            ui.p1.card.querySelector('.txt-press-btn').innerText = p1Ready ? t.readySimple : t.pressJoin;
+        } else {
+            ui.p1.card.className = 'player-card'; 
+            ui.p1.name.innerText = t.noController;
+            ui.p1.name.classList.add('txt-waiting');
+            ui.p1.startIcon.className = 'btn'; ui.p1.startIcon.innerText = '?'; ui.p1.startIcon.style.border = "1px dashed #555"; ui.p1.startIcon.style.color = "#555";
+        }
+
+        if (p2PadIndex !== null && pads[p2PadIndex]) {
+            ui.p2.card.classList.add('connected');
+            if(p2Ready) ui.p2.card.classList.add('ready'); else ui.p2.card.classList.remove('ready');
+            const type = getControllerType(pads[p2PadIndex]);
+            ui.p2.name.innerText = (type === 'ps' ? t.controllerPS : t.controllerXbox) + ` [ID:${p2PadIndex}]`;
+            ui.p2.name.classList.remove('txt-waiting');
+            updateIcons(1, type);
+            ui.p2.card.querySelector('.txt-press-btn').innerText = p2Ready ? t.readySimple : t.pressJoin;
+        } else {
+            ui.p2.card.className = 'player-card';
+            ui.p2.name.innerText = t.noController;
+            ui.p2.name.classList.add('txt-waiting');
+            ui.p2.startIcon.className = 'btn'; ui.p2.startIcon.innerText = '?'; ui.p2.startIcon.style.border = "1px dashed #555"; ui.p2.startIcon.style.color = "#555";
+        }
     }
 
-    // --- GEOMETRİK ÇİZİM YARDIMCISI ---
     function drawPolygon(ctx, x, y, radius, sides, rotation) {
         ctx.beginPath();
         for (let i = 0; i < sides; i++) {
@@ -423,7 +506,6 @@
         ctx.closePath();
     }
 
-    // --- GÜNCELLENEN OYUN NESNELERİ ---
     class Trap {
         constructor(x, y) {
             this.x = x; this.y = y; this.active = true; this.r = 15;
@@ -535,6 +617,8 @@
                 this.aimAngle=Math.atan2(ay,ax);
                 if(Date.now()-this.lastShot>100){
                     bullets.push(new Bullet(this.x,this.y,this.aimAngle,this.color));
+                    const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
+                    rumble(padIdx, 50, 0.1, 0.0);
                     this.lastShot=Date.now(); this.x-=Math.cos(this.aimAngle)*2; this.y-=Math.sin(this.aimAngle)*2;
                 }
             }
@@ -543,7 +627,11 @@
         }
         triggerUlti() {
             if(Date.now()-this.lastUlti>20000) {
-                this.lastUlti=Date.now(); shockwaves.push(new Shockwave(this.x,this.y,this.color)); shakeTime=30;
+                this.lastUlti=Date.now(); 
+                shockwaves.push(new Shockwave(this.x,this.y,this.color)); 
+                shakeTime=30;
+                const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
+                rumble(padIdx, 500, 0.5, 0.8);
             }
         }
         updateUI() {
@@ -552,7 +640,6 @@
             const u = this.id===0?ui.p1:ui.p2;
             u.ultiBar.style.width=pct+"%";
             
-            // DİL DESTEKLİ UI
             const t = translations[currentLang];
             if(pct>=100){ u.ultiBar.style.backgroundColor=this.color; u.ultiBar.style.boxShadow=`0 0 10px ${this.color}`; u.ultiText.innerText=t.ready; u.ultiText.style.opacity=1; } 
             else { u.ultiBar.style.backgroundColor="#555"; u.ultiBar.style.boxShadow="none"; u.ultiText.innerText=Math.ceil((20000-passed)/1000)+"s"; u.ultiText.style.opacity=0.5; }
@@ -562,6 +649,10 @@
         takeDamage(amount = 1) {
             if(this.invulnerableTime>0||this.isDead) return;
             this.lives -= amount; shakeTime=15;
+
+            const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
+            rumble(padIdx, 300, 0.8, 1.0);
+
             if(this.lives<=0) { this.isDead=true; this.lives=0; createExplosion(this.x,this.y,this.color); }
             else { this.invulnerableTime=120; createExplosion(this.x,this.y,"#fff"); }
         }
@@ -572,13 +663,14 @@
         freeze() {
             this.frozenTime = 120; 
             shakeTime = 5;
+            const padIdx = this.id === 0 ? p1PadIndex : p2PadIndex;
+            rumble(padIdx, 200, 0.5, 0.5);
         }
         draw() {
             if(this.isDead){
                 ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle=this.color; ctx.lineWidth=2;
                 ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.stroke();
                 
-                // DİL DESTEKLİ METİN
                 ctx.font="12px Orbitron"; ctx.fillStyle="white"; ctx.textAlign="center"; 
                 ctx.fillText(translations[currentLang].revive, this.x,this.y-35);
                 
@@ -592,7 +684,6 @@
             
             if (this.frozenTime > 0) {
                 ctx.shadowColor = "#00ffff"; ctx.fillStyle = "#88ffff"; 
-                // DİL DESTEKLİ METİN
                 ctx.font = "bold 14px Arial"; ctx.fillText(translations[currentLang].frozen, this.x-25, this.y+40);
             }
 
@@ -611,7 +702,6 @@
         draw(){ctx.save();ctx.shadowBlur=10;ctx.shadowColor=this.c;ctx.fillStyle="white";ctx.beginPath();ctx.arc(this.x,this.y,4,0,Math.PI*2);ctx.fill();ctx.restore();}
     }
     
-    // --- GÜNCELLENEN GÖRSEL DÜŞMAN SINIFI ---
     class Enemy {
         constructor(wave, type = 'normal'){
             let sb=(wave-1)*0.15;
@@ -621,14 +711,13 @@
             this.isBoss = false;
             this.type = type; 
             
-            this.angle = 0; // Dönme efekti için
+            this.angle = 0; 
             this.spinSpeed = 0.05;
 
-            // Özellikler ve Renkler
-            if (this.type === 'normal') { this.c = '#ff0044'; this.spinSpeed = 0.1; } // Hızlı dönen kırmızı
-            else if (this.type === 'healer') { this.c = '#00ff00'; this.s *= 0.8; this.spinSpeed = 0.02; } // Yavaş dönen yeşil
-            else if (this.type === 'shield') { this.c = '#0088ff'; this.shield = 50; this.s *= 0.9; this.spinSpeed = 0.01; } // Mavi, ağır dönen
-            else if (this.type === 'trapper') { this.c = '#ffaa00'; this.trapTimer = 0; this.spinSpeed = 0; } // Dönmeyen turuncu
+            if (this.type === 'normal') { this.c = '#ff0044'; this.spinSpeed = 0.1; } 
+            else if (this.type === 'healer') { this.c = '#00ff00'; this.s *= 0.8; this.spinSpeed = 0.02; } 
+            else if (this.type === 'shield') { this.c = '#0088ff'; this.shield = 50; this.s *= 0.9; this.spinSpeed = 0.01; } 
+            else if (this.type === 'trapper') { this.c = '#ffaa00'; this.trapTimer = 0; this.spinSpeed = 0; } 
         }
         update(){
             let t=null, d1=players[0].isDead?Infinity:Math.hypot(players[0].x-this.x,players[0].y-this.y), d2=players[1].isDead?Infinity:Math.hypot(players[1].x-this.x,players[1].y-this.y);
@@ -636,7 +725,7 @@
             t=d1<d2?players[0]:players[1];
             let a=Math.atan2(t.y-this.y,t.x-this.x); this.x+=Math.cos(a)*this.s; this.y+=Math.sin(a)*this.s;
 
-            this.angle += this.spinSpeed; // Dönme açısını artır
+            this.angle += this.spinSpeed; 
 
             if (this.type === 'trapper') {
                 this.trapTimer++;
@@ -658,61 +747,46 @@
         }
         draw(){
             ctx.save(); 
-            ctx.translate(this.x, this.y); // Merkeze taşı
+            ctx.translate(this.x, this.y); 
             
             ctx.shadowBlur=15; ctx.shadowColor=this.c;
             ctx.strokeStyle=this.c; 
             ctx.lineWidth=2;
 
             if (this.type === 'normal') {
-                // KIRMIZI ELMAS (Kare ama 45 derece dönük)
                 ctx.rotate(this.angle);
                 ctx.fillStyle = this.c;
                 ctx.beginPath();
-                ctx.rect(-10, -10, 20, 20); // Kare çiz
+                ctx.rect(-10, -10, 20, 20); 
                 ctx.fill();
-                // İçine parlayan beyazlık
                 ctx.shadowBlur=0; ctx.fillStyle = "rgba(255,255,255,0.5)";
                 ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill();
             } 
             else if (this.type === 'healer') {
-                // YEŞİL ARTI SEMBOLÜ
                 ctx.rotate(this.angle);
                 ctx.fillStyle = this.c;
-                // Yatay çubuk
                 ctx.fillRect(-15, -5, 30, 10);
-                // Dikey çubuk
                 ctx.fillRect(-5, -15, 10, 30);
-                // Etrafına halka
                 ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.stroke();
             }
             else if (this.type === 'shield') {
-                // MAVİ ALTIGEN
                 ctx.rotate(this.angle);
                 ctx.fillStyle = this.c;
-                drawPolygon(ctx, 0, 0, 15, 6, 0); // Altıgen
+                drawPolygon(ctx, 0, 0, 15, 6, 0); 
                 ctx.fill();
-                
-                // Kalkan varsa etrafında dönen enerji kalkanı
                 if (this.shield > 0) {
-                    ctx.rotate(-this.angle * 2); // Ters yöne dönen kalkan
+                    ctx.rotate(-this.angle * 2); 
                     ctx.shadowColor = "#00ffff"; ctx.strokeStyle = "#00ffff"; ctx.lineWidth = 3;
-                    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*1.5); // Yarım daire
+                    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*1.5); 
                     ctx.stroke();
                 }
             }
             else if (this.type === 'trapper') {
-                // TURUNCU ÜÇGEN (TUZAKÇI)
-                // Yanıp sönme efekti
                 let blink = Math.abs(Math.sin(Date.now() / 200));
                 ctx.globalAlpha = 0.5 + blink * 0.5;
                 ctx.fillStyle = this.c;
-                
-                // Üçgen çizimi
-                drawPolygon(ctx, 0, 0, 18, 3, -Math.PI/2); // Üçgen yukarı baksın
+                drawPolygon(ctx, 0, 0, 18, 3, -Math.PI/2); 
                 ctx.fill();
-                
-                // İçine ünlem işareti gibi nokta
                 ctx.fillStyle = "white"; ctx.globalAlpha = 1;
                 ctx.beginPath(); ctx.arc(0, 2, 4, 0, Math.PI*2); ctx.fill();
             }
@@ -749,13 +823,11 @@
 
             ctx.shadowBlur=40; ctx.shadowColor=this.c; ctx.strokeStyle=this.c; ctx.lineWidth=4;
             
-            // Dış Dönen Kareler
             ctx.strokeRect(-40, -40, 80, 80);
             ctx.rotate(Math.PI/4);
             ctx.strokeRect(-40, -40, 80, 80);
             
-            // İç Dolu Kısım (Kötü Göz)
-            ctx.rotate(-this.angle * 2); // Ters dön
+            ctx.rotate(-this.angle * 2); 
             ctx.fillStyle = "black";
             ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.fill();
             ctx.fillStyle = this.c;
@@ -763,7 +835,6 @@
 
             ctx.restore();
 
-            // Can Barı (Sabit kalmalı)
             ctx.save();
             ctx.fillStyle = "black"; ctx.fillRect(this.x-50, this.y-80, 100, 10);
             ctx.fillStyle = "red"; ctx.fillRect(this.x-50, this.y-80, 100*(this.hp/this.maxHp), 10);
@@ -782,11 +853,11 @@
 
     function startWave(waveNum) {
         currentWave = waveNum; isWaveBreak = false;
-        traps = []; healthPacks = []; // Önceki dalgadan kalanları temizle
+        traps = []; healthPacks = []; 
         
-        const t = translations[currentLang]; // GÜNCEL DİLİ AL
+        const t = translations[currentLang]; 
 
-        if (waveNum % 5 === 0) { // BOSS
+        if (waveNum % 5 === 0) { 
             isBossWave = true; bossSpawned = false;
             let minions = 5 + (waveNum * 2); 
             waveEnemiesTotal = 1 + minions;
@@ -794,6 +865,8 @@
             spawnRate = 40; 
             ui.waveTitle.innerText = t.bossFight; ui.waveTitle.classList.add("boss-warning");
             ui.waveInfo.className = "wave-info"; ui.waveInfo.innerText = t.bossMinions;
+            if (p1PadIndex !== null) rumble(p1PadIndex, 800, 0.5, 0.5);
+            if (p2PadIndex !== null) rumble(p2PadIndex, 800, 0.5, 0.5);
         } else {
             isBossWave = false;
             waveEnemiesTotal = 5 + (waveNum * 3); 
@@ -811,11 +884,45 @@
         ui.waveInfo.className="wave-break";
     }
 
-    function togglePause() { isPaused=!isPaused; ui.pauseScreen.style.display=isPaused?'flex':'none'; }
+    // --- MENÜ KONTROLLERİ ---
+    function updateMenuFocus() {
+        // Pause Menüsü
+        const pauseBtns = document.getElementById('pause-menu').children;
+        Array.from(pauseBtns).forEach((b, i) => {
+            if (i === menuNavState.pauseIndex) b.classList.add('selected'); else b.classList.remove('selected');
+        });
+
+        // Game Over Menüsü
+        const overBtns = document.getElementById('gameover-menu').children;
+        Array.from(overBtns).forEach((b, i) => {
+            if (i === menuNavState.overIndex) b.classList.add('selected'); else b.classList.remove('selected');
+        });
+    }
+
+    function resetMenuState() {
+        menuNavState.pauseIndex = 0;
+        menuNavState.overIndex = 0;
+        updateMenuFocus();
+    }
+
+    function togglePause() { 
+        isPaused=!isPaused; 
+        ui.pauseScreen.style.display=isPaused?'flex':'none'; 
+        if(isPaused) resetMenuState();
+    }
+
+    function restartGame() {
+        isGameOver = false; isPaused = false;
+        ui.gameoverScreen.style.display = 'none';
+        bullets=[]; enemies=[]; particles=[]; shockwaves=[]; bosses=[]; traps=[]; healthPacks=[];
+        players[0].reset(); players[1].reset();
+        players[0].score = 0; players[1].score = 0;
+        currentWave = 1;
+        startWave(1);
+    }
 
     function resetToMenu() {
         gameActive = false; isGameOver = false; isPaused = false;
-        gameOverDisplayed = false;
         p1Ready = false; p2Ready = false;
         ui.p1.card.classList.remove('ready'); ui.p2.card.classList.remove('ready');
         ui.gameoverScreen.style.display = 'none';
@@ -824,47 +931,142 @@
         bullets=[]; enemies=[]; particles=[]; shockwaves=[]; bosses=[]; traps=[]; healthPacks=[];
         players[0].reset(); players[1].reset();
         currentWave = 1;
-        
-        updateControllerNames(); // Dil resetlenirse veya kol çıkarsa diye
+        updateControllerUI();
     }
 
     function loop() {
         requestAnimationFrame(loop);
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
 
+        // --- GLOBAL MENU INPUT HANDLING (D-PAD KALDIRILDI) ---
+        // Sadece Analog Çubuk ve LB/RB
+        let inputDirection = { up: false, down: false, lb: false, rb: false, select: false };
+        
+        for (let i = 0; i < pads.length; i++) {
+            const pad = pads[i];
+            if (!pad) continue;
+            
+            // Sadece Sol Analog Çubuk (Stick) ile Gezinti
+            if (pad.axes[1] < -0.5) inputDirection.up = true;
+            if (pad.axes[1] > 0.5) inputDirection.down = true;
+
+            // D-Pad İptal Edildi (İleride Kullanılacak)
+            // if (pad.buttons[12].pressed) ... 
+            
+            // LB (Button 4) / RB (Button 5) for Language
+            if (pad.buttons[4].pressed) inputDirection.lb = true;
+            if (pad.buttons[5].pressed) inputDirection.rb = true;
+
+            if (pad.buttons[0].pressed) inputDirection.select = true; // A / Cross
+        }
+
+        // Debounce Logic for Menu Navigation
+        const now = Date.now();
+        if (now - menuNavState.lastMove > 200) {
+            
+            // 1. DİL SEÇİMİ (START EKRANI) - LB/RB İLE
+            if (!gameActive && ui.startScreen.style.display !== 'none') {
+                if (inputDirection.rb) {
+                    menuNavState.langIndex = (menuNavState.langIndex + 1) % langs.length;
+                    setLanguage(langs[menuNavState.langIndex]);
+                    menuNavState.lastMove = now;
+                }
+                if (inputDirection.lb) {
+                    menuNavState.langIndex = (menuNavState.langIndex - 1 + langs.length) % langs.length;
+                    setLanguage(langs[menuNavState.langIndex]);
+                    menuNavState.lastMove = now;
+                }
+            }
+
+            // 2. PAUSE MENÜSÜ
+            if (isPaused) {
+                if (inputDirection.down) { menuNavState.pauseIndex = 1; updateMenuFocus(); menuNavState.lastMove = now; }
+                if (inputDirection.up) { menuNavState.pauseIndex = 0; updateMenuFocus(); menuNavState.lastMove = now; }
+                
+                if (inputDirection.select) {
+                    if (menuNavState.pauseIndex === 0) togglePause(); // Resume
+                    else resetToMenu(); // Menu
+                    menuNavState.lastMove = now + 200; // Extra delay
+                }
+            }
+
+            // 3. GAME OVER MENÜSÜ
+            if (isGameOver) {
+                if (inputDirection.down) { menuNavState.overIndex = 1; updateMenuFocus(); menuNavState.lastMove = now; }
+                if (inputDirection.up) { menuNavState.overIndex = 0; updateMenuFocus(); menuNavState.lastMove = now; }
+
+                if (inputDirection.select) {
+                    if (menuNavState.overIndex === 0) restartGame(); // Restart
+                    else resetToMenu(); // Menu
+                    menuNavState.lastMove = now + 500;
+                }
+            }
+        }
+
+        // --- MENÜ VE KOL SEÇİM MANTIĞI ---
         if (!gameActive) {
-            // Dil desteği için kol isimlerini güncelleme
-            updateControllerNames(pads);
+            for (let i = 0; i < pads.length; i++) {
+                const pad = pads[i];
+                if (!pad) continue;
+                if (!buttonStates[i]) buttonStates[i] = { pressed: false };
+                const anyBtn = pad.buttons.some(b => b.pressed);
 
-            if(pads[0]){
-                ui.p1.card.classList.add('connected');
-                updateIcons(0, getControllerType(pads[0]));
-                if(pads[0].buttons[0].pressed && !p1BtnLast) { p1Ready=!p1Ready; ui.p1.card.classList.toggle('ready'); }
-                p1BtnLast = pads[0].buttons[0].pressed;
-            } else { ui.p1.card.classList.remove('connected','ready'); p1Ready=false; }
+                if (anyBtn && !buttonStates[i].pressed) {
+                    buttonStates[i].pressed = true;
+                    const isP1 = (p1PadIndex === i);
+                    const isP2 = (p2PadIndex === i);
 
-            if(pads[1]){
-                ui.p2.card.classList.add('connected');
-                updateIcons(1, getControllerType(pads[1]));
-                if(pads[1].buttons[0].pressed && !p2BtnLast) { p2Ready=!p2Ready; ui.p2.card.classList.toggle('ready'); }
-                p2BtnLast = pads[1].buttons[0].pressed;
-            } else { ui.p2.card.classList.remove('connected','ready'); p2Ready=false; }
+                    if (pad.buttons[0].pressed) {
+                        if (!isP1 && !isP2) {
+                            if (p1PadIndex === null) { p1PadIndex = i; rumble(i, 200, 0.5, 0.0); }
+                            else if (p2PadIndex === null) { p2PadIndex = i; rumble(i, 200, 0.5, 0.0); }
+                        } else {
+                            if (isP1) { p1Ready = !p1Ready; rumble(i, 100, 0.2, 0.0); }
+                            if (isP2) { p2Ready = !p2Ready; rumble(i, 100, 0.2, 0.0); }
+                        }
+                    }
+                    if (pad.buttons[1].pressed) {
+                        if (isP1) { if (p1Ready) p1Ready = false; else p1PadIndex = null; }
+                        if (isP2) { if (p2Ready) p2Ready = false; else p2PadIndex = null; }
+                    }
+                    updateControllerUI();
+                }
+                if (!anyBtn) buttonStates[i].pressed = false;
+            }
 
-            let p1OK = !pads[0] || p1Ready; let p2OK = !pads[1] || p2Ready; let atLeastOne = pads[0] || pads[1];
-            if(atLeastOne && p1OK && p2OK) { gameActive=true; ui.startScreen.style.display='none'; startWave(1); }
+            let p1OK = (p1PadIndex !== null && p1Ready);
+            let p2OK = (p2PadIndex !== null && p2Ready);
+            let p1Exist = p1PadIndex !== null;
+            let p2Exist = p2PadIndex !== null;
+            let allReady = false;
+            if (p1Exist && p2Exist) allReady = p1OK && p2OK;
+            else if (p1Exist) allReady = p1OK;
+            else if (p2Exist) allReady = p2OK;
+
+            if(allReady && (p1Exist || p2Exist)) { 
+                gameActive=true; 
+                ui.startScreen.style.display='none'; 
+                startWave(1); 
+            }
             return;
         }
 
-        const startBtn = (pads[0] && pads[0].buttons[9].pressed) || (pads[1] && pads[1].buttons[9].pressed);
-        if(startBtn && Date.now()-lastPauseToggle>300) { if(isGameOver) resetToMenu(); else togglePause(); lastPauseToggle=Date.now(); }
+        // --- OYUN İÇİ START ---
+        let p1Start = p1PadIndex !== null && pads[p1PadIndex] && pads[p1PadIndex].buttons[9].pressed;
+        let p2Start = p2PadIndex !== null && pads[p2PadIndex] && pads[p2PadIndex].buttons[9].pressed;
 
-        const t = translations[currentLang]; // Çeviri kısayolu
+        if((p1Start || p2Start) && Date.now()-lastPauseToggle>300) { 
+            if(!isGameOver) { togglePause(); lastPauseToggle=Date.now(); }
+        }
+
+        const t = translations[currentLang]; 
 
         if(isPaused || isGameOver) {
             if(isGameOver && ui.gameoverScreen.style.display !== 'flex') {
                  ui.gameoverScreen.style.display='flex';
                  ui.finalWaveDisplay.innerText = t.waveReached + currentWave;
                  ui.totalScoreDisplay.innerText = t.totalScore + (players[0].score + players[1].score);
+                 resetMenuState();
             }
             return; 
         }
@@ -875,7 +1077,8 @@
         for(let x=0;x<canvas.width;x+=50){ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);}
         for(let y=0;y<canvas.height;y+=50){ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);} ctx.stroke();
 
-        if(pads[0]) players[0].update(pads[0]); if(pads[1]) players[1].update(pads[1]);
+        if(p1PadIndex !== null && pads[p1PadIndex]) players[0].update(pads[p1PadIndex]);
+        if(p2PadIndex !== null && pads[p2PadIndex]) players[1].update(pads[p2PadIndex]);
 
         if(!isWaveBreak) {
             if (waveEnemiesSpawned < waveEnemiesTotal) {
@@ -896,7 +1099,6 @@
                 startWaveBreak();
             }
             
-            // HUD GÜNCELLEME (DİL DESTEKLİ)
             if(isBossWave && bosses.length > 0) ui.waveInfo.innerText = t.bossHp + Math.floor(bosses[0].hp);
             else ui.waveInfo.innerText = t.remaining + (waveEnemiesTotal - waveEnemiesKilled);
         } else {
@@ -909,9 +1111,15 @@
 
         [0,1].forEach(i=>{
             let me=players[i], other=players[i===0?1:0];
+            if ((i===0 && p1PadIndex===null) || (i===1 && p2PadIndex===null)) return;
+
             if(me.isDead && !other.isDead && Math.hypot(me.x-other.x,me.y-other.y)<60) {
                 me.reviveProgress+=1.5;
-                if(me.reviveProgress>=100) { me.isDead=false; me.lives=2; me.reviveProgress=0; me.invulnerableTime=180; createExplosion(me.x,me.y,'#00ff00'); shakeTime=20; }
+                if(me.reviveProgress>=100) { 
+                    me.isDead=false; me.lives=2; me.reviveProgress=0; me.invulnerableTime=180; 
+                    createExplosion(me.x,me.y,'#00ff00'); shakeTime=20; 
+                    rumble(i===0?p1PadIndex:p2PadIndex, 400, 0.5, 0.5);
+                }
             } else me.reviveProgress=0;
         });
 
@@ -921,11 +1129,17 @@
             let b = bosses[i];
             if(b.hp > 0) {
                 b.update(); b.draw();
-                players.forEach(p => { if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-b.x, p.y-b.y) < p.r + b.r) { p.takeDamage(2); shakeTime=20; } });
+                players.forEach(p => { 
+                    if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
+                    if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-b.x, p.y-b.y) < p.r + b.r) { 
+                        p.takeDamage(2); shakeTime=20; 
+                    } 
+                });
             } else bosses.splice(i, 1);
         }
 
-        players[0].draw(); players[1].draw();
+        if(p1PadIndex !== null) players[0].draw(); 
+        if(p2PadIndex !== null) players[1].draw();
 
         for(let i=bullets.length-1;i>=0;i--){
             let b=bullets[i]; b.update(); b.draw();
@@ -961,6 +1175,8 @@
             let e=enemies[i]; e.update(); e.draw();
             for(let j=0; j<players.length; j++){
                 let p = players[j];
+                if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) continue;
+
                 if(!p.isDead && p.invulnerableTime<=0 && Math.hypot(p.x-e.x,p.y-e.y)<p.r+e.r){
                     p.takeDamage(1); createExplosion(e.x,e.y,e.c); enemies.splice(i,1); waveEnemiesKilled++; break;
                 }
@@ -970,6 +1186,7 @@
         for(let i=traps.length-1; i>=0; i--) {
             let t = traps[i]; t.draw();
             players.forEach(p => {
+                if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
                 if (!p.isDead && Math.hypot(p.x-t.x, p.y-t.y) < t.r + p.r) {
                     p.freeze(); traps.splice(i, 1);
                 }
@@ -978,6 +1195,7 @@
         for(let i=healthPacks.length-1; i>=0; i--) {
             let h = healthPacks[i]; h.draw();
             players.forEach(p => {
+                if((p.id===0 && p1PadIndex===null) || (p.id===1 && p2PadIndex===null)) return;
                 if (!p.isDead && Math.hypot(p.x-h.x, p.y-h.y) < h.r + p.r) {
                     p.heal(); healthPacks.splice(i, 1);
                 }
@@ -986,9 +1204,13 @@
         
         particles.forEach((p,i)=>{p.update();p.draw();if(p.life<=0)particles.splice(i,1);});
         if(shakeTime>0) ctx.restore();
+        
         ui.p1.score.innerText = `P1: ${players[0].score}`; ui.p2.score.innerText = `P2: ${players[1].score}`;
         
-        if(players[0].isDead && players[1].isDead) isGameOver=true;
+        let activePlayersCount = (p1PadIndex !== null ? 1 : 0) + (p2PadIndex !== null ? 1 : 0);
+        let deadPlayersCount = (p1PadIndex !== null && players[0].isDead ? 1 : 0) + (p2PadIndex !== null && players[1].isDead ? 1 : 0);
+        
+        if(activePlayersCount > 0 && activePlayersCount === deadPlayersCount) isGameOver=true;
     }
     loop();
     window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
