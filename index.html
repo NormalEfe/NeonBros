@@ -238,7 +238,7 @@
         update() {
             this.r+=this.speed; this.lw*=0.95; this.alpha-=0.03; if(this.alpha<=0)this.active=false;
             
-            // Düşman Öldürme ve Puan Ekleme (FIXED)
+            // Düşman Öldürme ve Puan Ekleme
             for(let i=enemies.length-1; i>=0; i--){
                 let e = enemies[i];
                 if(Math.abs(Math.hypot(e.x-this.x, e.y-this.y)-this.r)<30){
@@ -536,7 +536,8 @@
         if(startBtn && Date.now()-lastPauseToggle>300) { if(isGameOver) resetToMenu(); else togglePause(); lastPauseToggle=Date.now(); }
 
         if(isPaused || isGameOver) {
-            if(isGameOver && ui.gameoverScreen.style.display==='none') {
+            // BURASI DÜZELTİLDİ: "=== 'none'" YERİNE " !== 'flex'" YAPILDI
+            if(isGameOver && ui.gameoverScreen.style.display !== 'flex') {
                  ui.gameoverScreen.style.display='flex';
                  ui.finalWaveDisplay.innerText = "ULAŞILAN DALGA: " + currentWave;
                  ui.totalScoreDisplay.innerText = "TOPLAM PUAN: " + (players[0].score + players[1].score);
